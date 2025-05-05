@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Image Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Image Upload</h1>
+    
+    <div class="form-group">
+        <label for="token">Authentication Token:</label>
+        <input type="text" id="token" placeholder="Enter your authentication token">
+    </div>
+    
+    <div class="form-group">
+        <label for="propertyId">Property ID:</label>
+        <input type="text" id="propertyId" placeholder="Enter property ID">
+    </div>
+    
+    <div class="form-group">
+        <label for="image">Select Image:</label>
+        <input type="file" id="image" accept="image/*">
+    </div>
+    
+    <button onclick="uploadImage()">Upload Image</button>
+    
+    <div class="result" id="result">
+        <p>Results will appear here...</p>
+    </div>
+    
+    <script>
+        async function uploadImage() {
+            const token = document.getElementById('token').value;
+            const propertyId = document.getElementById('propertyId').value;
+            const imageInput = document.getElementById('image');
+            const resultDiv = document.getElementById('result');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<p style="color: red;">Please enter an authentication token</p>';
+                return;
+            }
+            
+            if (!propertyId) {
+                resultDiv.innerHTML = '<p style="color: red;">Please enter a property ID</p>';
+                return;
+            }
+            
+            if (!imageInput.files || imageInput.files.length === 0) {
+                resultDiv.innerHTML = '<p style="color: red;">Please select an image</p>';
+                return;
+            }
+            
+            const file = imageInput.files[0];
+            
+            // Create FormData object
+            const formData = new FormData();
+            
+            // Try different field names
+            const fieldNames = ['image', 'file', 'photo', 'picture', 'images[]', 'files[]'];
+            
+            // Add the file with each field name
+            for (const fieldName of fieldNames) {
+                formData.append(fieldName, file);
+            }
+            
+            // Add the file without a field name (some servers expect this)
+            try {
+                formData.append('', file);
+            } catch (e) {
+                console.error('Could not add file without field name:', e);
+            }
+            
+            resultDiv.innerHTML = '<p>Uploading image...</p>';
+            
+            try {
+                const response = await fetch(`http://10.0.2.2:3004/api/properties/${propertyId}/images`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p style="color: green;">Upload successful!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p style="color: red;">Upload failed: ${response.status} ${response.statusText}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p style="color: red;">Error: ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
