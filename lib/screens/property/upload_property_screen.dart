@@ -5,14 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../components/common/app_button.dart';
 import '../../components/common/app_text_field.dart';
-import '../../models/property.dart';
-import '../../models/property_amenity.dart';
-import '../../models/amenity.dart';
-import '../../providers/property_provider.dart';
-import '../../providers/amenity_provider.dart';
+import '../../models/property2.dart';
+import '../../models/facility.dart';
+import '../../providers/property_provider2.dart';
+import '../../providers/facility_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
-import '../../utils/amenity_converter.dart';
 
 class UploadPropertyScreen extends ConsumerStatefulWidget {
   const UploadPropertyScreen({super.key});
@@ -37,34 +35,40 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
   final _bedroomsController = TextEditingController();
   final _bathroomsController = TextEditingController();
   final _maxGuestsController = TextEditingController();
+  final _totalRoomsController = TextEditingController();
+  final _totalBedsController = TextEditingController();
+  final _latitudeController = TextEditingController(text: '0.0');
+  final _longitudeController = TextEditingController(text: '0.0');
 
-  String _selectedPropertyType = 'apartment';
+  String _selectedPropertyType = 'House';
   final List<String> _propertyTypes = [
-    'apartment',
-    'house',
-    'villa',
-    'cabin',
-    'hotel',
-    'other',
+    'House',
+    'Apartment',
+    'Villa',
+    'Cabin',
+    'Hotel',
+    'Resort',
+    'Cottage',
+    'Other',
   ];
 
-  final List<int> _selectedAmenityIds = [];
-  List<Amenity> _availableAmenities = [];
+  final List<int> _selectedFacilityIds = [];
+  List<Facility> _availableFacilities = [];
 
   // Image selection
   final List<File> _selectedImages = [];
   final ImagePicker _imagePicker = ImagePicker();
 
   bool _isLoading = false;
-  bool _isLoadingAmenities = false;
+  bool _isLoadingFacilities = false;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    // Fetch amenities when the screen loads, but use Future.microtask to avoid
+    // Fetch facilities when the screen loads, but use Future.microtask to avoid
     // modifying the provider during widget initialization
-    Future.microtask(() => _fetchAmenities());
+    Future.microtask(() => _fetchFacilities());
   }
 
   @override
@@ -80,45 +84,49 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
     _bedroomsController.dispose();
     _bathroomsController.dispose();
     _maxGuestsController.dispose();
+    _totalRoomsController.dispose();
+    _totalBedsController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
-  Future<void> _fetchAmenities() async {
+  Future<void> _fetchFacilities() async {
     if (!mounted) return;
 
     setState(() {
-      _isLoadingAmenities = true;
+      _isLoadingFacilities = true;
     });
 
     try {
       // Wrap the provider update in a Future to ensure it happens after the widget tree is built
       await Future(() async {
-        await ref.read(amenityProvider.notifier).fetchAmenities();
+        await ref.read(facilityProvider.notifier).fetchFacilities();
       });
 
       // Only read the state after the Future completes
       if (!mounted) return;
-      final amenityState = ref.read(amenityProvider);
+      final facilityState = ref.read(facilityProvider);
 
       setState(() {
-        _availableAmenities = amenityState.amenities;
-        _isLoadingAmenities = false;
+        _availableFacilities = facilityState.facilities;
+        _isLoadingFacilities = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'Failed to load amenities: ${e.toString()}';
-        _isLoadingAmenities = false;
+        _errorMessage = 'Failed to load facilities: ${e.toString()}';
+        _isLoadingFacilities = false;
       });
     }
   }
 
-  void _toggleAmenity(int amenityId) {
+  void _toggleFacility(int facilityId) {
     setState(() {
-      if (_selectedAmenityIds.contains(amenityId)) {
-        _selectedAmenityIds.remove(amenityId);
+      if (_selectedFacilityIds.contains(facilityId)) {
+        _selectedFacilityIds.remove(facilityId);
       } else {
-        _selectedAmenityIds.add(amenityId);
+        _selectedFacilityIds.add(facilityId);
       }
     });
   }
@@ -131,14 +139,24 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
       );
 
       if (pickedFile != null) {
+        // Use the file directly without trying to copy it
         final imageFile = File(pickedFile.path);
-        if (mounted) {
-          setState(() {
-            _selectedImages.add(imageFile);
-          });
+
+        // Verify the file exists
+        if (await imageFile.exists()) {
+          debugPrint('Image selected: ${imageFile.path}');
+
+          if (mounted) {
+            setState(() {
+              _selectedImages.add(imageFile);
+            });
+          }
+        } else {
+          throw Exception('Selected image file does not exist');
         }
       }
     } catch (e) {
+      debugPrint('Error picking image: $e');
       if (mounted) {
         setState(() {
           _errorMessage = 'Failed to pick image: $e';
@@ -146,7 +164,7 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to pick image: $e'),
+            content: Text('Failed to select image. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -160,6 +178,63 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
     });
   }
 
+  // Validate that all selected images exist and are accessible
+  Future<bool> _validateImages() async {
+    List<File> invalidImages = [];
+
+    for (var image in _selectedImages) {
+      try {
+        if (!await image.exists()) {
+          debugPrint('Image does not exist: ${image.path}');
+          invalidImages.add(image);
+        } else {
+          // Try to read the file to ensure it's accessible
+          final fileSize = await image.length();
+          debugPrint('Image validated: ${image.path} (${fileSize} bytes)');
+
+          // Check if file size is too large (> 5MB)
+          if (fileSize > 5 * 1024 * 1024) {
+            debugPrint('Image too large: ${image.path} (${fileSize} bytes)');
+            invalidImages.add(image);
+          }
+        }
+      } catch (e) {
+        debugPrint('Error validating image ${image.path}: $e');
+        invalidImages.add(image);
+      }
+    }
+
+    if (invalidImages.isNotEmpty) {
+      // Remove invalid images
+      setState(() {
+        _selectedImages.removeWhere((img) => invalidImages.contains(img));
+      });
+
+      // Show error message
+      if (mounted) {
+        String message =
+            '${invalidImages.length} invalid image(s) were removed.';
+        if (invalidImages.any((img) => img.path.contains('scaled_'))) {
+          message +=
+              ' The image picker may be creating temporary files that are being cleaned up.';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$message Please select new images.'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+
+      return _selectedImages
+          .isNotEmpty; // Return true if we still have valid images
+    }
+
+    return true;
+  }
+
   Future<void> _uploadProperty() async {
     if (_formKey.currentState?.validate() ?? false) {
       // Check if images are selected
@@ -170,6 +245,11 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
             backgroundColor: Colors.red,
           ),
         );
+        return;
+      }
+
+      // Validate images before proceeding
+      if (!await _validateImages()) {
         return;
       }
 
@@ -201,71 +281,66 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
         // Log the start of the upload process
         debugPrint('Starting property upload process with images');
 
-        // Create property amenities from selected amenity IDs
-        final List<PropertyAmenity> amenities = _selectedAmenityIds.map((id) {
-          // Find the amenity in the available amenities list
-          final amenity = _availableAmenities.firstWhere(
-            (a) => a.id == id,
-            orElse: () => Amenity(
-              id: id,
-              name: 'Unknown',
-              icon: 'default_icon',
-              createdAt: DateTime.now().toIso8601String(),
+        // Create facilities from selected facility IDs
+        final List<Facility> facilities = _selectedFacilityIds.map((id) {
+          // Find the facility in the available facilities list
+          final facility = _availableFacilities.firstWhere(
+            (f) => f.facilityId == id,
+            orElse: () => Facility(
+              facilityId: id,
+              facilityType: 'Unknown',
             ),
           );
-          // Convert Amenity to PropertyAmenity using the converter
-          return AmenityConverter.toPropertyAmenity(amenity);
+          // Return the facility
+          return facility;
         }).toList();
 
-        debugPrint('Selected amenities: ${amenities.length}');
+        debugPrint('Selected facilities: ${facilities.length}');
         debugPrint('Selected images: ${_selectedImages.length}');
 
         // Create property object
-        final property = Property(
-          id: 0, // Will be assigned by the server
-          hostId: 0, // Will be assigned by the server
+        final property = Property2(
+          propertyId: 0, // Will be assigned by the server
+          userId: 0, // Will be assigned by the server
           title: _titleController.text,
           description: _descriptionController.text,
           address: _addressController.text,
           city: _cityController.text,
-          state: _stateController.text,
-          country: _countryController.text,
-          zipCode: _zipCodeController.text,
-          latitude: 0.0, // Would need to be determined from address
-          longitude: 0.0, // Would need to be determined from address
-          pricePerNight: double.parse(_priceController.text),
-          bedrooms: int.parse(_bedroomsController.text),
-          bathrooms: int.parse(_bathroomsController.text),
-          maxGuests: int.parse(_maxGuestsController.text),
           propertyType: _selectedPropertyType,
-          createdAt: DateTime.now().toIso8601String(),
-          updatedAt: DateTime.now().toIso8601String(),
-          hostFirstName: '', // Will be filled by the server
-          hostLastName: '', // Will be filled by the server
+          latitude: double.tryParse(_latitudeController.text) ?? 0.0,
+          longitude: double.tryParse(_longitudeController.text) ?? 0.0,
+          rentPerDay: double.parse(_priceController.text),
+          guest: int.parse(_maxGuestsController.text),
+          hostName: '', // Will be filled by the server
+          rating: 0.0, // Default value
           images: [], // Images will be uploaded with the property
-          amenities: amenities,
+          facilities: facilities,
           reviews: [],
+          avgRating: 0.0, // Default value
+          reviewCount: 0, // Default value
+          totalBedrooms: int.tryParse(_bedroomsController.text),
+          totalRooms: int.tryParse(_totalRoomsController.text),
+          totalBeds: int.tryParse(_totalBedsController.text),
         );
 
         debugPrint('Property object created');
 
         // Create the property with images in a single request
         debugPrint('Creating property with images in one request');
-        final createdProperty = await ref
-            .read(propertyProvider.notifier)
-            .createPropertyWithImagesInOneRequest(
-              property: property,
-              imageFiles: _selectedImages,
-            );
+        final createdProperty =
+            await ref.read(propertyProvider2.notifier).createPropertyWithImages(
+                  property: property,
+                  imageFiles: _selectedImages,
+                );
 
         // Log detailed information about the created property
         debugPrint(
-            'Property created successfully with ID: ${createdProperty.id}');
+            'Property created successfully with ID: ${createdProperty.propertyId}');
         debugPrint('Created property details:');
         debugPrint('  - Title: ${createdProperty.title}');
-        debugPrint('  - ID: ${createdProperty.id}');
-        debugPrint('  - Host ID: ${createdProperty.hostId}');
-        debugPrint('  - Created At: ${createdProperty.createdAt}');
+        debugPrint('  - ID: ${createdProperty.propertyId}');
+        debugPrint('  - User ID: ${createdProperty.userId}');
+        debugPrint('  - Host Name: ${createdProperty.hostName}');
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -308,12 +383,14 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
             detailedError =
                 'API response format mismatch. The server returned data in an unexpected format.';
           } else if (errorMsg.contains('Failed to upload') ||
-              errorMsg.contains('image')) {
+              errorMsg.contains('image') ||
+              errorMsg.contains('PathNotFoundException') ||
+              errorMsg.contains('No such file or directory')) {
             debugPrint('Detected image upload error');
             errorMsg =
-                'Failed to upload images. Please try again with smaller or fewer images.';
+                'Failed to upload images. Please try again with different images.';
             detailedError =
-                'Image upload failed. This could be due to large file sizes, unsupported formats, or server limitations.';
+                'Image upload failed. This could be due to temporary files being removed, large file sizes, or unsupported formats.';
           } else if (errorMsg.contains('Connection refused') ||
               errorMsg.contains('Failed host lookup')) {
             debugPrint('Detected network connectivity error');
@@ -388,6 +465,7 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         title: const Text('Upload Property'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -472,8 +550,7 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
                     items: _propertyTypes.map((type) {
                       return DropdownMenuItem<String>(
                         value: type,
-                        child: Text(type.substring(0, 1).toUpperCase() +
-                            type.substring(1)),
+                        child: Text(type),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -519,35 +596,67 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
               const SizedBox(height: 16),
 
               // State
-              AppTextField(
-                controller: _stateController,
-                label: 'State/Province',
-                hint: 'Enter state or province',
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter a state or province'
-                    : null,
-              ),
-              const SizedBox(height: 16),
+              // AppTextField(
+              //   controller: _stateController,
+              //   label: 'State/Province',
+              //   hint: 'Enter state or province',
+              //   validator: (value) => value == null || value.isEmpty
+              //       ? 'Please enter a state or province'
+              //       : null,
+              // ),
+              // const SizedBox(height: 16),
 
               // Country
-              AppTextField(
-                controller: _countryController,
-                label: 'Country',
-                hint: 'Enter country',
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter a country'
-                    : null,
-              ),
-              const SizedBox(height: 16),
+              // AppTextField(
+              //   controller: _countryController,
+              //   label: 'Country',
+              //   hint: 'Enter country',
+              //   validator: (value) => value == null || value.isEmpty
+              //       ? 'Please enter a country'
+              //       : null,
+              // ),
+              // const SizedBox(height: 16),
 
               // Zip Code
-              AppTextField(
-                controller: _zipCodeController,
-                label: 'Zip/Postal Code',
-                hint: 'Enter zip or postal code',
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter a zip or postal code'
-                    : null,
+              // AppTextField(
+              //   controller: _zipCodeController,
+              //   label: 'Zip/Postal Code',
+              //   hint: 'Enter zip or postal code',
+              //   validator: (value) => value == null || value.isEmpty
+              //       ? 'Please enter a zip or postal code'
+              //       : null,
+              // ),
+              // const SizedBox(height: 16),
+
+              // Location coordinates
+              Row(
+                children: [
+                  Expanded(
+                    child: AppTextField(
+                      controller: _latitudeController,
+                      label: 'Latitude',
+                      hint: 'Property latitude',
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.-]')),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: AppTextField(
+                      controller: _longitudeController,
+                      label: 'Longitude',
+                      hint: 'Property longitude',
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.-]')),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
 
@@ -562,30 +671,56 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
               const SizedBox(height: 16),
 
               // Bedrooms
-              AppTextField(
-                controller: _bedroomsController,
-                label: 'Bedrooms',
-                hint: 'Number of bedrooms',
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter number of bedrooms'
-                    : null,
-              ),
-              const SizedBox(height: 16),
+              // AppTextField(
+              //   controller: _bedroomsController,
+              //   label: 'Bedrooms',
+              //   hint: 'Number of bedrooms',
+              //   keyboardType: TextInputType.number,
+              //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              //   validator: (value) => value == null || value.isEmpty
+              //       ? 'Please enter number of bedrooms'
+              //       : null,
+              // ),
+              // const SizedBox(height: 16),
+
+              // Total Rooms
+              // AppTextField(
+              //   controller: _totalRoomsController,
+              //   label: 'Total Rooms',
+              //   hint: 'Total number of rooms',
+              //   keyboardType: TextInputType.number,
+              //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              //   validator: (value) => value == null || value.isEmpty
+              //       ? 'Please enter total number of rooms'
+              //       : null,
+              // ),
+              // const SizedBox(height: 16),
+
+              // Total Beds
+              // AppTextField(
+              //   controller: _totalBedsController,
+              //   label: 'Total Beds',
+              //   hint: 'Total number of beds',
+              //   keyboardType: TextInputType.number,
+              //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              //   validator: (value) => value == null || value.isEmpty
+              //       ? 'Please enter total number of beds'
+              //       : null,
+              // ),
+              // const SizedBox(height: 16),
 
               // Bathrooms
-              AppTextField(
-                controller: _bathroomsController,
-                label: 'Bathrooms',
-                hint: 'Number of bathrooms',
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter number of bathrooms'
-                    : null,
-              ),
-              const SizedBox(height: 16),
+              // AppTextField(
+              //   controller: _bathroomsController,
+              //   label: 'Bathrooms',
+              //   hint: 'Number of bathrooms',
+              //   keyboardType: TextInputType.number,
+              //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              //   validator: (value) => value == null || value.isEmpty
+              //       ? 'Please enter number of bathrooms'
+              //       : null,
+              // ),
+              // const SizedBox(height: 16),
 
               // Max Guests
               AppTextField(
@@ -598,82 +733,88 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
                     ? 'Please enter maximum number of guests'
                     : null,
               ),
-              const SizedBox(height: 24),
 
-              // Note about images
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Images',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'You will be able to add images to your property after creating it.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 24),
 
               // Amenities
-              const Text(
-                'Amenities',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
+              // const Text(
+              //   'Amenities',
+              //   style: TextStyle(
+              //     fontSize: 20,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
+              // const SizedBox(height: 16),
 
-              // Display amenities for selection
-              _isLoadingAmenities
-                  ? const Center(child: CircularProgressIndicator())
-                  : _availableAmenities.isEmpty
-                      ? const Text('No amenities available')
-                      : Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
-                          children: _availableAmenities.map((amenity) {
-                            final isSelected =
-                                _selectedAmenityIds.contains(amenity.id);
-                            return FilterChip(
-                              label: Text(amenity.name),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                _toggleAmenity(amenity.id);
-                              },
-                              backgroundColor: Colors.white,
-                              selectedColor: AppColors.primary.withAlpha(50),
-                              checkmarkColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    AppBorderRadius.small),
-                                side: BorderSide(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : Colors.grey.shade300,
-                                ),
-                              ),
-                            );
-                          }).toList(),
+              // Display facilities for selection
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Available Facilities',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
                         ),
+                      ),
+                      TextButton.icon(
+                        onPressed: _fetchFacilities,
+                        icon: Icon(Icons.refresh),
+                        label: Text('Refresh'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  _isLoadingFacilities
+                      ? const Center(child: CircularProgressIndicator())
+                      : _availableFacilities.isEmpty
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('No facilities available'),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Tap refresh to load facilities',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textLight,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Wrap(
+                              spacing: 8.0,
+                              runSpacing: 8.0,
+                              children: _availableFacilities.map((facility) {
+                                final isSelected = _selectedFacilityIds
+                                    .contains(facility.facilityId);
+                                return FilterChip(
+                                  label: Text(facility.facilityType),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    _toggleFacility(facility.facilityId);
+                                  },
+                                  backgroundColor: Colors.white,
+                                  selectedColor:
+                                      AppColors.primary.withAlpha(50),
+                                  checkmarkColor: AppColors.primary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        AppBorderRadius.small),
+                                    side: BorderSide(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : Colors.grey.shade300,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                ],
+              ),
               const SizedBox(height: 32),
 
               // Images section

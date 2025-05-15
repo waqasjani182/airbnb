@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_provider.dart';
-import '../dashboard/dashboard_screen.dart';
+import '../dashboard/dashboard_screen2.dart';
 import 'login_screen.dart';
 
 /// A wrapper widget that handles authentication state changes
@@ -24,7 +24,7 @@ class AuthWrapper extends ConsumerWidget {
 
     // Redirect based on authentication status
     if (authState.isAuthenticated) {
-      return const DashboardScreen();
+      return const DashboardScreen2();
     } else {
       return const LoginScreen();
     }

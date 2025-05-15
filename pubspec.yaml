@@ -54,6 +54,7 @@ dependencies:
   # For handling files
   path: ^1.8.3
   http_parser: ^4.0.2
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
