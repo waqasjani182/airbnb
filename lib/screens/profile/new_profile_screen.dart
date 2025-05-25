@@ -217,8 +217,13 @@ class NewProfileScreen extends ConsumerWidget {
         // Dismiss loading dialog if it's still showing
         if (context.mounted) {
           Navigator.of(context).pop();
+
+          // Explicitly navigate to login screen
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRoutes.login,
+            (route) => false, // Remove all previous routes
+          );
         }
-        // The AuthWrapper will handle navigation based on auth state
       } catch (e) {
         // Dismiss loading dialog if it's still showing
         if (context.mounted) {

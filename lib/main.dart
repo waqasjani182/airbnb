@@ -7,12 +7,11 @@ import 'providers/auth_provider.dart';
 import 'screens/auth/auth_wrapper.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
-import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/dashboard/dashboard_screen2.dart';
 import 'screens/profile/new_profile_screen.dart';
 import 'screens/profile/personal_info_screen.dart';
 import 'screens/search/search_screen.dart';
-import 'screens/dashboard/icon_detail_screen2.dart';
+import 'screens/property/property_detail_screen.dart';
 import 'screens/property/upload_property_screen.dart';
 import 'screens/common/coming_soon_screen.dart';
 import 'screens/common/not_found_screen.dart';
@@ -64,7 +63,7 @@ class MyApp extends ConsumerWidget {
             const DashboardScreen2(), // Using the new dashboard screen
         AppRoutes.profile: (context) => const NewProfileScreen(),
         AppRoutes.search: (context) => const SearchScreen(),
-        AppRoutes.propertyDetails: (context) => const IconDetailScreen2(),
+        AppRoutes.propertyDetails: (context) => const PropertyDetailScreen(),
         AppRoutes.uploadProperty: (context) => const UploadPropertyScreen(),
         AppRoutes.personalInfo: (context) => const PersonalInfoScreen(),
       },
@@ -73,9 +72,9 @@ class MyApp extends ConsumerWidget {
         if (settings.name?.startsWith('${AppRoutes.propertyDetails}/') ??
             false) {
           final propertyId = settings.name!.split('/').last;
-          // Use IconDetailScreen2 for the new property details screen
+          // Use PropertyDetailScreen for the property details screen
           return MaterialPageRoute(
-            builder: (context) => IconDetailScreen2(propertyId: propertyId),
+            builder: (context) => PropertyDetailScreen(propertyId: propertyId),
           );
         }
 

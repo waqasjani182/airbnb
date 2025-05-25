@@ -230,7 +230,7 @@ class BookingCard extends StatelessWidget {
                       child: Row(
                         children: [
                           if (onCancelPressed != null &&
-                              booking.status == BookingStatus.pending)
+                              booking.status.toLowerCase() == 'pending')
                             Expanded(
                               child: OutlinedButton(
                                 onPressed: onCancelPressed,
@@ -245,7 +245,7 @@ class BookingCard extends StatelessWidget {
                               ),
                             ),
                           if (onReviewPressed != null &&
-                              booking.status == BookingStatus.completed &&
+                              booking.status.toLowerCase() == 'completed' &&
                               booking.rating == null)
                             Expanded(
                               child: ElevatedButton(
@@ -271,37 +271,31 @@ class BookingCard extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(BookingStatus status) {
-    switch (status) {
-      case BookingStatus.pending:
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
         return Colors.orange;
-      case BookingStatus.confirmed:
+      case 'confirmed':
         return AppColors.secondary;
-      case BookingStatus.cancelled:
+      case 'cancelled':
         return AppColors.error;
-      case BookingStatus.completed:
+      case 'completed':
         return Colors.blue;
+      default:
+        return Colors.grey;
     }
   }
 
-  String _getStatusText(BookingStatus status) {
-    switch (status) {
-      case BookingStatus.pending:
-        return 'Pending';
-      case BookingStatus.confirmed:
-        return 'Confirmed';
-      case BookingStatus.cancelled:
-        return 'Cancelled';
-      case BookingStatus.completed:
-        return 'Completed';
-    }
+  String _getStatusText(String status) {
+    return status.substring(0, 1).toUpperCase() +
+        status.substring(1).toLowerCase();
   }
 
   bool _shouldShowActionButtons() {
     return (onCancelPressed != null &&
-            booking.status == BookingStatus.pending) ||
+            booking.status.toLowerCase() == 'pending') ||
         (onReviewPressed != null &&
-            booking.status == BookingStatus.completed &&
+            booking.status.toLowerCase() == 'completed' &&
             booking.rating == null);
   }
 }

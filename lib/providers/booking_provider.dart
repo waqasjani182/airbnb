@@ -113,6 +113,7 @@ class BookingNotifier extends StateNotifier<BookingState> {
   Future<void> createBooking(Booking booking) async {
     state = state.copyWith(
       isLoading: true,
+      errorMessage: null, // Clear previous errors
     );
     try {
       final newBooking =
@@ -121,12 +122,14 @@ class BookingNotifier extends StateNotifier<BookingState> {
         bookings: [...state.bookings, newBooking],
         selectedBooking: newBooking,
         isLoading: false,
+        errorMessage: null,
       );
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString(),
         isLoading: false,
       );
+      rethrow; // Rethrow the error so the UI can handle it
     }
   }
 
@@ -185,7 +188,7 @@ class BookingNotifier extends StateNotifier<BookingState> {
       String propertyId, DateTime startDate, DateTime endDate) {
     // Check if the booking is for the specified property and overlaps with the date range
     return state.bookings.where((booking) {
-      if (booking.propertyId != propertyId) {
+      if (booking.propertyId.toString() != propertyId) {
         return false;
       }
 
@@ -204,8 +207,8 @@ class BookingNotifier extends StateNotifier<BookingState> {
 
     // Check if there are any confirmed or pending bookings that overlap with the date range
     return !bookings.any((booking) =>
-        booking.status == BookingStatus.confirmed ||
-        booking.status == BookingStatus.pending);
+        booking.status.toLowerCase() == 'confirmed' ||
+        booking.status.toLowerCase() == 'pending');
   }
 }
 

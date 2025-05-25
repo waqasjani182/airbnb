@@ -140,26 +140,34 @@ class Property2 {
   }
 
   factory Property2.fromJson(Map<String, dynamic> json) {
+    // Check if the response has a 'property' wrapper
+    Map<String, dynamic> propertyData = json;
+    if (json.containsKey('property') &&
+        json['property'] is Map<String, dynamic>) {
+      propertyData = json['property'] as Map<String, dynamic>;
+    }
+
     // Handle images
     List<PropertyImage2> imagesList = [];
-    if (json['images'] != null && json['images'] is List) {
-      imagesList = (json['images'] as List)
+    if (propertyData['images'] != null && propertyData['images'] is List) {
+      imagesList = (propertyData['images'] as List)
           .map((imageJson) => PropertyImage2.fromJson(imageJson))
           .toList();
     }
 
     // Handle facilities
     List<Facility> facilitiesList = [];
-    if (json['facilities'] != null && json['facilities'] is List) {
-      facilitiesList = (json['facilities'] as List)
+    if (propertyData['facilities'] != null &&
+        propertyData['facilities'] is List) {
+      facilitiesList = (propertyData['facilities'] as List)
           .map((facilityJson) => Facility.fromJson(facilityJson))
           .toList();
     }
 
     // Handle reviews
     List<PropertyReview> reviewsList = [];
-    if (json['reviews'] != null && json['reviews'] is List) {
-      reviewsList = (json['reviews'] as List)
+    if (propertyData['reviews'] != null && propertyData['reviews'] is List) {
+      reviewsList = (propertyData['reviews'] as List)
           .map((reviewJson) => PropertyReview.fromJson(reviewJson))
           .toList();
     }
@@ -179,32 +187,32 @@ class Property2 {
     }
 
     return Property2(
-      propertyId: parseIntValue(json['property_id']),
-      userId: parseIntValue(json['user_id']),
-      propertyType: json['property_type'] ?? '',
-      rentPerDay: parseDoubleValue(json['rent_per_day']),
-      address: json['address'] ?? '',
-      rating: parseDoubleValue(json['rating']),
-      city: json['city'] ?? '',
-      longitude: parseDoubleValue(json['longitude']),
-      latitude: parseDoubleValue(json['latitude']),
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      guest: parseIntValue(json['guest']),
-      hostName: json['host_name'] ?? '',
+      propertyId: parseIntValue(propertyData['property_id']),
+      userId: parseIntValue(propertyData['user_id']),
+      propertyType: propertyData['property_type'] ?? '',
+      rentPerDay: parseDoubleValue(propertyData['rent_per_day']),
+      address: propertyData['address'] ?? '',
+      rating: parseDoubleValue(propertyData['rating']),
+      city: propertyData['city'] ?? '',
+      longitude: parseDoubleValue(propertyData['longitude']),
+      latitude: parseDoubleValue(propertyData['latitude']),
+      title: propertyData['title'] ?? '',
+      description: propertyData['description'] ?? '',
+      guest: parseIntValue(propertyData['guest']),
+      hostName: propertyData['host_name'] ?? '',
       images: imagesList,
       facilities: facilitiesList,
       reviews: reviewsList,
-      avgRating: parseDoubleValue(json['avg_rating']),
-      reviewCount: parseIntValue(json['review_count']),
-      totalBedrooms: json.containsKey('total_bedrooms')
-          ? parseIntValue(json['total_bedrooms'])
+      avgRating: parseDoubleValue(propertyData['avg_rating']),
+      reviewCount: parseIntValue(propertyData['review_count']),
+      totalBedrooms: propertyData.containsKey('total_bedrooms')
+          ? parseIntValue(propertyData['total_bedrooms'])
           : null,
-      totalRooms: json.containsKey('total_rooms')
-          ? parseIntValue(json['total_rooms'])
+      totalRooms: propertyData.containsKey('total_rooms')
+          ? parseIntValue(propertyData['total_rooms'])
           : null,
-      totalBeds: json.containsKey('total_beds')
-          ? parseIntValue(json['total_beds'])
+      totalBeds: propertyData.containsKey('total_beds')
+          ? parseIntValue(propertyData['total_beds'])
           : null,
     );
   }

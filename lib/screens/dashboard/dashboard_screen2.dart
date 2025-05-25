@@ -16,12 +16,7 @@ class _DashboardScreen2State extends ConsumerState<DashboardScreen2> {
   final List<Map<String, dynamic>> _categories = [
     {'icon': Icons.apartment, 'label': 'Apartments', 'type': 'Apartment'},
     {'icon': Icons.house, 'label': 'Houses', 'type': 'House'},
-    {'icon': Icons.villa, 'label': 'Villas', 'type': 'Villa'},
-    {'icon': Icons.cabin, 'label': 'Cabins', 'type': 'Cabin'},
-    {'icon': Icons.hotel, 'label': 'Hotels', 'type': 'Hotel'},
-    {'icon': Icons.meeting_room, 'label': 'Rooms', 'type': 'Room'},
-    {'icon': Icons.beach_access, 'label': 'Beach', 'type': null},
-    {'icon': Icons.landscape, 'label': 'Mountains', 'type': null},
+    {'icon': Icons.room_service, 'label': 'Rooms', 'type': 'Room'},
   ];
 
   String? _selectedCategory;

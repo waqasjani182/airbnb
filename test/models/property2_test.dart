@@ -35,16 +35,8 @@ void main() {
           }
         ],
         'facilities': [
-          {
-            'facility_id': 1,
-            'facility_type': 'WiFi',
-            'property_id': 1
-          },
-          {
-            'facility_id': 2,
-            'facility_type': 'Pool',
-            'property_id': 1
-          }
+          {'facility_id': 1, 'facility_type': 'WiFi', 'property_id': 1},
+          {'facility_id': 2, 'facility_type': 'Pool', 'property_id': 1}
         ],
         'reviews': [],
         'avg_rating': 4.5,
@@ -68,19 +60,19 @@ void main() {
       expect(property.description, 'Beautiful house near the beach');
       expect(property.guest, 4);
       expect(property.hostName, 'John Doe');
-      
+
       // Check images
       expect(property.images.length, 2);
       expect(property.images[0].pictureId, 1);
       expect(property.images[0].propertyId, 1);
       expect(property.images[0].imageUrl, 'images/property1_1.jpg');
-      
+
       // Check facilities
       expect(property.facilities.length, 2);
       expect(property.facilities[0].facilityId, 1);
       expect(property.facilities[0].facilityType, 'WiFi');
       expect(property.facilities[0].propertyId, 1);
-      
+
       // Check reviews and ratings
       expect(property.reviews.length, 0);
       expect(property.avgRating, 4.5);
@@ -143,22 +135,125 @@ void main() {
       expect(json['description'], 'Modern apartment in downtown');
       expect(json['guest'], 2);
       expect(json['host_name'], 'Jane Smith');
-      
+
       // Check images
       expect(json['images'].length, 1);
       expect(json['images'][0]['picture_id'], 3);
       expect(json['images'][0]['property_id'], 2);
       expect(json['images'][0]['image_url'], 'images/property2_1.jpg');
-      
+
       // Check facilities
       expect(json['facilities'].length, 2);
       expect(json['facilities'][0]['facility_id'], 1);
       expect(json['facilities'][0]['facility_type'], 'WiFi');
       expect(json['facilities'][0]['property_id'], 2);
-      
+
       // Check ratings
       expect(json['avg_rating'], 4.2);
       expect(json['review_count'], 0);
+    });
+
+    test(
+        'fromJson correctly parses new API response format with property wrapper',
+        () {
+      // Test data based on the new API response format with property wrapper
+      final json = {
+        'property': {
+          'property_id': 1,
+          'user_id': 1,
+          'property_type': 'House',
+          'rent_per_day': 150,
+          'address': '123 Beach Rd',
+          'rating': 4.5,
+          'city': 'Miami',
+          'longitude': -80.191788,
+          'latitude': 25.761681,
+          'title': 'Beach House',
+          'description': 'Beautiful house near the beach',
+          'guest': 4,
+          'host_name': 'John Doe',
+          'total_bedrooms': 3,
+          'images': [
+            {
+              'picture_id': 1,
+              'property_id': 1,
+              'image_url': 'images/property1_1.jpg'
+            },
+            {
+              'picture_id': 2,
+              'property_id': 1,
+              'image_url': 'images/property1_2.jpg'
+            }
+          ],
+          'facilities': [
+            {'facility_id': 1, 'facility_type': 'WiFi'},
+            {'facility_id': 2, 'facility_type': 'Pool'}
+          ],
+          'reviews': [
+            {
+              'booking_id': 1,
+              'user_ID': 3,
+              'property_id': 1,
+              'user_rating': 4.5,
+              'user_review': 'Great guest!',
+              'owner_rating': 4.8,
+              'owner_review': 'Excellent host',
+              'property_rating': 4.7,
+              'property_review': 'Beautiful property, would stay again',
+              'name': 'Bob Johnson'
+            }
+          ],
+          'avg_rating': 4.5,
+          'review_count': 1
+        }
+      };
+
+      // Create a Property2 from the JSON
+      final property = Property2.fromJson(json);
+
+      // Verify the parsing is correct
+      expect(property.propertyId, 1);
+      expect(property.userId, 1);
+      expect(property.propertyType, 'House');
+      expect(property.rentPerDay, 150);
+      expect(property.address, '123 Beach Rd');
+      expect(property.rating, 4.5);
+      expect(property.city, 'Miami');
+      expect(property.longitude, -80.191788);
+      expect(property.latitude, 25.761681);
+      expect(property.title, 'Beach House');
+      expect(property.description, 'Beautiful house near the beach');
+      expect(property.guest, 4);
+      expect(property.hostName, 'John Doe');
+      expect(property.totalBedrooms, 3);
+
+      // Check images
+      expect(property.images.length, 2);
+      expect(property.images[0].pictureId, 1);
+      expect(property.images[0].propertyId, 1);
+      expect(property.images[0].imageUrl, 'images/property1_1.jpg');
+
+      // Check facilities
+      expect(property.facilities.length, 2);
+      expect(property.facilities[0].facilityId, 1);
+      expect(property.facilities[0].facilityType, 'WiFi');
+
+      // Check reviews
+      expect(property.reviews.length, 1);
+      expect(property.reviews[0].bookingId, 1);
+      expect(property.reviews[0].userId, 3);
+      expect(property.reviews[0].userRating, 4.5);
+      expect(property.reviews[0].userReview, 'Great guest!');
+      expect(property.reviews[0].ownerRating, 4.8);
+      expect(property.reviews[0].ownerReview, 'Excellent host');
+      expect(property.reviews[0].propertyRating, 4.7);
+      expect(property.reviews[0].propertyReview,
+          'Beautiful property, would stay again');
+      expect(property.reviews[0].name, 'Bob Johnson');
+
+      // Check ratings
+      expect(property.avgRating, 4.5);
+      expect(property.reviewCount, 1);
     });
   });
 
@@ -188,12 +283,7 @@ void main() {
             'review_count': 0
           }
         ],
-        'pagination': {
-          'total': 3,
-          'page': 1,
-          'limit': 10,
-          'pages': 1
-        }
+        'pagination': {'total': 3, 'page': 1, 'limit': 10, 'pages': 1}
       };
 
       // Create a PropertyResponse from the JSON
@@ -203,7 +293,7 @@ void main() {
       expect(response.properties.length, 1);
       expect(response.properties[0].propertyId, 1);
       expect(response.properties[0].title, 'Beach House');
-      
+
       // Check pagination
       expect(response.total, 3);
       expect(response.page, 1);

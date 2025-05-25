@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
+import '../services/navigation_service.dart';
+import '../utils/constants.dart';
 import 'api_provider.dart';
 
 // Auth state
@@ -52,8 +55,10 @@ class AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthService _authService;
   final SharedPreferences _prefs;
+  final NavigationService? _navigationService;
 
-  AuthNotifier(this._authService, this._prefs) : super(AuthState()) {
+  AuthNotifier(this._authService, this._prefs, [this._navigationService])
+      : super(AuthState()) {
     _initialize();
   }
 
@@ -114,7 +119,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isLoading: false,
       );
 
-      // No need to navigate here, the AuthWrapper will handle it
+      // Navigate using NavigationService if available
+      if (_navigationService != null) {
+        debugPrint('Using NavigationService to navigate after login');
+        _navigationService.replaceTo(AppRoutes.dashboard);
+      } else {
+        debugPrint('NavigationService not available, relying on UI navigation');
+        // The UI will handle navigation through state changes
+      }
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.error,
@@ -155,7 +167,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isLoading: false,
       );
 
-      // No need to navigate here, the AuthWrapper will handle it
+      // Navigate using NavigationService if available
+      if (_navigationService != null) {
+        debugPrint('Using NavigationService to navigate after signup');
+        _navigationService.replaceTo(AppRoutes.dashboard);
+      } else {
+        debugPrint('NavigationService not available, relying on UI navigation');
+        // The UI will handle navigation through state changes
+      }
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.error,
@@ -184,7 +203,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       isLoading: false,
     );
 
-    // No need to navigate here, the AuthWrapper will handle it
+    // Navigate using NavigationService if available
+    if (_navigationService != null) {
+      debugPrint('Using NavigationService to navigate after logout');
+      _navigationService.replaceTo(AppRoutes.login);
+    } else {
+      debugPrint('NavigationService not available, relying on UI navigation');
+      // The UI will handle navigation through state changes
+    }
   }
 
   Future<void> updateProfile(User updatedUser) async {
@@ -240,5 +266,6 @@ final authServiceProvider = Provider<AuthService>((ref) {
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final authService = ref.watch(authServiceProvider);
   final prefs = ref.watch(sharedPreferencesProvider);
-  return AuthNotifier(authService, prefs);
+  final navigationService = ref.watch(navigationServiceProvider);
+  return AuthNotifier(authService, prefs, navigationService);
 });

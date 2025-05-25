@@ -32,13 +32,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       // Clear any previous error messages
       setState(() {
         _errorMessage = null;
+        _isLoading = true;
       });
 
-      // Call the login method on the auth provider
-      await ref.read(authProvider.notifier).login(
-            _emailController.text.trim(),
-            _passwordController.text,
-          );
+      try {
+        // Call the login method on the auth provider
+        await ref.read(authProvider.notifier).login(
+              _emailController.text.trim(),
+              _passwordController.text,
+            );
+
+        // Check if authentication was successful
+        final authState = ref.read(authProvider);
+        if (authState.isAuthenticated) {
+          // Navigate to dashboard on successful login
+          if (mounted) {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRoutes.dashboard,
+              (route) => false, // Remove all previous routes
+            );
+          }
+        }
+      } catch (e) {
+        // Handle any errors
+        if (mounted) {
+          setState(() {
+            _errorMessage = e.toString();
+          });
+        }
+      } finally {
+        // Reset loading state
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 

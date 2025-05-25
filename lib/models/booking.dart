@@ -6,55 +6,101 @@ enum BookingStatus {
 }
 
 class Booking {
-  final String id;
-  final String propertyId;
-  final String userId;
-  final DateTime checkIn;
-  final DateTime checkOut;
-  final int guestCount;
-  final double totalPrice;
-  final BookingStatus status;
-  final DateTime createdAt;
+  final int? bookingId;
+  final int propertyId;
+  final int userId;
+  final String status;
+  final DateTime bookingDate;
+  final DateTime startDate;
+  final DateTime endDate;
+  final double totalAmount;
+  final int guests;
+  final int numberOfDays;
+
+  // Property details (included in API response)
+  final String? title;
+  final String? city;
+  final double? rentPerDay;
+  final String? address;
+  final String? propertyType;
+  final String? hostName;
+  final String? propertyImage;
+
+  // Legacy fields for backward compatibility
   final double? rating;
   final String? review;
 
   Booking({
-    required this.id,
+    this.bookingId,
     required this.propertyId,
     required this.userId,
-    required this.checkIn,
-    required this.checkOut,
-    required this.guestCount,
-    required this.totalPrice,
     required this.status,
-    required this.createdAt,
+    required this.bookingDate,
+    required this.startDate,
+    required this.endDate,
+    required this.totalAmount,
+    required this.guests,
+    required this.numberOfDays,
+    this.title,
+    this.city,
+    this.rentPerDay,
+    this.address,
+    this.propertyType,
+    this.hostName,
+    this.propertyImage,
     this.rating,
     this.review,
   });
 
+  // Legacy getters for backward compatibility
+  String get id => bookingId?.toString() ?? '';
+  String get propertyIdString => propertyId.toString();
+  String get userIdString => userId.toString();
+  DateTime get checkIn => startDate;
+  DateTime get checkOut => endDate;
+  int get guestCount => guests;
+  double get totalPrice => totalAmount;
+  DateTime get createdAt => bookingDate;
+
   Booking copyWith({
-    String? id,
-    String? propertyId,
-    String? userId,
-    DateTime? checkIn,
-    DateTime? checkOut,
-    int? guestCount,
-    double? totalPrice,
-    BookingStatus? status,
-    DateTime? createdAt,
+    int? bookingId,
+    int? propertyId,
+    int? userId,
+    String? status,
+    DateTime? bookingDate,
+    DateTime? startDate,
+    DateTime? endDate,
+    double? totalAmount,
+    int? guests,
+    int? numberOfDays,
+    String? title,
+    String? city,
+    double? rentPerDay,
+    String? address,
+    String? propertyType,
+    String? hostName,
+    String? propertyImage,
     double? rating,
     String? review,
   }) {
     return Booking(
-      id: id ?? this.id,
+      bookingId: bookingId ?? this.bookingId,
       propertyId: propertyId ?? this.propertyId,
       userId: userId ?? this.userId,
-      checkIn: checkIn ?? this.checkIn,
-      checkOut: checkOut ?? this.checkOut,
-      guestCount: guestCount ?? this.guestCount,
-      totalPrice: totalPrice ?? this.totalPrice,
       status: status ?? this.status,
-      createdAt: createdAt ?? this.createdAt,
+      bookingDate: bookingDate ?? this.bookingDate,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      totalAmount: totalAmount ?? this.totalAmount,
+      guests: guests ?? this.guests,
+      numberOfDays: numberOfDays ?? this.numberOfDays,
+      title: title ?? this.title,
+      city: city ?? this.city,
+      rentPerDay: rentPerDay ?? this.rentPerDay,
+      address: address ?? this.address,
+      propertyType: propertyType ?? this.propertyType,
+      hostName: hostName ?? this.hostName,
+      propertyImage: propertyImage ?? this.propertyImage,
       rating: rating ?? this.rating,
       review: review ?? this.review,
     );
@@ -62,37 +108,51 @@ class Booking {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'propertyId': propertyId,
-      'userId': userId,
-      'checkIn': checkIn.toIso8601String(),
-      'checkOut': checkOut.toIso8601String(),
-      'guestCount': guestCount,
-      'totalPrice': totalPrice,
-      'status': status.toString().split('.').last,
-      'createdAt': createdAt.toIso8601String(),
-      'rating': rating,
-      'review': review,
+      'property_id': propertyId,
+      'start_date':
+          startDate.toIso8601String().split('T')[0], // YYYY-MM-DD format
+      'end_date': endDate.toIso8601String().split('T')[0], // YYYY-MM-DD format
+      'guests': guests,
     };
   }
 
   factory Booking.fromJson(Map<String, dynamic> json) {
-    return Booking(
-      id: json['id'] as String,
-      propertyId: json['propertyId'] as String,
-      userId: json['userId'] as String,
-      checkIn: DateTime.parse(json['checkIn'] as String),
-      checkOut: DateTime.parse(json['checkOut'] as String),
-      guestCount: json['guestCount'] as int,
-      totalPrice: json['totalPrice'] as double,
-      status: BookingStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == json['status'],
-        orElse: () => BookingStatus.pending,
-      ),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      rating: json['rating'] as double?,
-      review: json['review'] as String?,
-    );
+    print('[BOOKING MODEL] Parsing JSON: $json'); // Debug log
+    try {
+      final booking = Booking(
+        bookingId: json['booking_id'],
+        propertyId: json['property_id'] ?? 0,
+        userId: json['user_ID'] ?? 0, // Handle null user_ID
+        status: json['status'] ?? 'Pending',
+        bookingDate: DateTime.parse(json['booking_date']),
+        startDate: DateTime.parse(json['start_date']),
+        endDate: DateTime.parse(json['end_date']),
+        totalAmount: json['total_amount'] != null
+            ? double.parse(json['total_amount'].toString())
+            : 0.0,
+        guests: json['guests'] ?? 1,
+        numberOfDays: json['number_of_days'] ?? 0,
+        title: json['title'],
+        city: json['city'],
+        rentPerDay: json['rent_per_day'] != null
+            ? double.parse(json['rent_per_day'].toString())
+            : null,
+        address: json['address'],
+        propertyType: json['property_type'],
+        hostName: json['host_name'],
+        propertyImage: json['property_image'],
+        rating: json['rating'] != null
+            ? double.parse(json['rating'].toString())
+            : null,
+        review: json['review'],
+      );
+      print(
+          '[BOOKING MODEL] Successfully created booking: ${booking.bookingId}'); // Debug log
+      return booking;
+    } catch (e) {
+      print('[BOOKING MODEL] Error parsing JSON: $e'); // Debug log
+      rethrow;
+    }
   }
 
   @override

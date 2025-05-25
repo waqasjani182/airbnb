@@ -1,4 +1,3 @@
-import 'dart:convert';
 import '../models/booking.dart';
 import '../utils/constants.dart';
 import 'api_client.dart';
@@ -24,37 +23,7 @@ class BookingService {
 
   // Helper method to map JSON to Booking
   Booking _mapJsonToBooking(Map<String, dynamic> json) {
-    return Booking(
-      id: json['id'].toString(),
-      propertyId: json['property_id'].toString(),
-      userId: json['user_id'].toString(),
-      checkIn: DateTime.parse(json['check_in']),
-      checkOut: DateTime.parse(json['check_out']),
-      guestCount: json['guest_count'],
-      totalPrice: double.parse(json['total_price'].toString()),
-      status: _getBookingStatus(json['status']),
-      createdAt: DateTime.parse(json['created_at']),
-      rating: json['rating'] != null
-          ? double.parse(json['rating'].toString())
-          : null,
-      review: json['review'],
-    );
-  }
-
-  // Helper method to convert string to BookingStatus
-  BookingStatus _getBookingStatus(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-        return BookingStatus.pending;
-      case 'confirmed':
-        return BookingStatus.confirmed;
-      case 'cancelled':
-        return BookingStatus.cancelled;
-      case 'completed':
-        return BookingStatus.completed;
-      default:
-        return BookingStatus.pending;
-    }
+    return Booking.fromJson(json);
   }
 
   Future<List<Booking>> getPropertyBookings(
@@ -88,18 +57,16 @@ class BookingService {
     final response = await _apiClient.post<Map<String, dynamic>>(
       '/api/bookings',
       requiresAuth: true,
-      body: {
-        'property_id': booking.propertyId,
-        'check_in': booking.checkIn.toIso8601String(),
-        'check_out': booking.checkOut.toIso8601String(),
-        'guest_count': booking.guestCount,
-        'total_price': booking.totalPrice,
-      },
+      body: booking.toJson(),
     );
 
     if (response.success && response.data != null) {
-      return _mapJsonToBooking(response.data!);
+      // The API response includes a 'booking' field
+      final bookingData = response.data!['booking'] ?? response.data!;
+      print('[BOOKING SERVICE] Booking data: $bookingData'); // Debug log
+      return _mapJsonToBooking(bookingData);
     } else {
+      print('[BOOKING SERVICE] Error: ${response.error}'); // Debug log
       throw Exception(response.error ?? 'Failed to create booking');
     }
   }

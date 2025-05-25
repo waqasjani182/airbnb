@@ -37,14 +37,43 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       // Clear any previous error messages
       setState(() {
         _errorMessage = null;
+        _isLoading = true;
       });
 
-      // Call the signup method on the auth provider
-      await ref.read(authProvider.notifier).signup(
-            _usernameController.text.trim(),
-            _emailController.text.trim(),
-            _passwordController.text,
-          );
+      try {
+        // Call the signup method on the auth provider
+        await ref.read(authProvider.notifier).signup(
+              _usernameController.text.trim(),
+              _emailController.text.trim(),
+              _passwordController.text,
+            );
+
+        // Check if authentication was successful
+        final authState = ref.read(authProvider);
+        if (authState.isAuthenticated) {
+          // Navigate to dashboard on successful signup
+          if (mounted) {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRoutes.dashboard,
+              (route) => false, // Remove all previous routes
+            );
+          }
+        }
+      } catch (e) {
+        // Handle any errors
+        if (mounted) {
+          setState(() {
+            _errorMessage = e.toString();
+          });
+        }
+      } finally {
+        // Reset loading state
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 

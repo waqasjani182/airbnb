@@ -1,5 +1,5 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'dart:io' if (dart.library.html) 'dart:html';
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import '../models/user.dart';
 import '../models/user2.dart';
 import '../utils/constants.dart';
@@ -21,8 +21,9 @@ class AuthService {
 
   AuthService({ApiClient? apiClient})
       : _apiClient = apiClient ?? ApiClient(baseUrl: kBaseUrl),
-        _useDirect = Platform.isMacOS,
-        _directService = Platform.isMacOS ? AuthServiceDirect() : null;
+        _useDirect = !kIsWeb && (Platform.isMacOS),
+        _directService =
+            !kIsWeb && (Platform.isMacOS) ? AuthServiceDirect() : null;
 
   Future<AuthResult> login(String email, String password) async {
     try {
