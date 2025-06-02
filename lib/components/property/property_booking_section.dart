@@ -127,6 +127,7 @@ class _PropertyBookingSectionState
     } catch (e) {
       // Show error message
       print('[BOOKING SECTION] Error creating booking: $e'); // Debug log
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

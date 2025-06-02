@@ -92,6 +92,41 @@ class BookingNotifier extends StateNotifier<BookingState> {
     }
   }
 
+  Future<void> fetchHostBookings() async {
+    state = state.copyWith(
+      status: BookingProviderStatus.loading,
+      isLoading: true,
+    );
+    try {
+      final bookings = await _bookingService.getHostBookings(_authToken!);
+      state = state.copyWith(
+        status: BookingProviderStatus.success,
+        bookings: bookings,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: BookingProviderStatus.error,
+        errorMessage: e.toString(),
+        isLoading: false,
+      );
+    }
+  }
+
+  // Get pending bookings count for notifications
+  int get pendingBookingsCount {
+    return state.bookings
+        .where((booking) => booking.status.toLowerCase() == 'pending')
+        .length;
+  }
+
+  // Get pending bookings list
+  List<Booking> get pendingBookings {
+    return state.bookings
+        .where((booking) => booking.status.toLowerCase() == 'pending')
+        .toList();
+  }
+
   Future<void> fetchBookingById(String id) async {
     state = state.copyWith(
       isLoading: true,

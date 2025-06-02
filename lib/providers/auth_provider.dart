@@ -145,14 +145,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return error;
   }
 
-  Future<void> signup(String username, String email, String password) async {
+  Future<void> signup(String username, String email, String password,
+      String address, String phoneNo) async {
     state = state.copyWith(
       status: AuthStatus.authenticating,
       errorMessage: null, // Clear previous errors
       isLoading: true,
     );
     try {
-      final result = await _authService.signup(username, email, password);
+      final result = await _authService.signup(
+          username, email, password, address, phoneNo);
 
       // Save token to SharedPreferences
       await _prefs.setString('auth_token', result.token);

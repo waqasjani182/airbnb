@@ -25,6 +25,10 @@ class Booking {
   final String? propertyType;
   final String? hostName;
   final String? propertyImage;
+  final String? description;
+  final String? guestName;
+  final int? hostId;
+  final List<String>? propertyImages;
 
   // Legacy fields for backward compatibility
   final double? rating;
@@ -48,6 +52,10 @@ class Booking {
     this.propertyType,
     this.hostName,
     this.propertyImage,
+    this.description,
+    this.guestName,
+    this.hostId,
+    this.propertyImages,
     this.rating,
     this.review,
   });
@@ -80,6 +88,10 @@ class Booking {
     String? propertyType,
     String? hostName,
     String? propertyImage,
+    String? description,
+    String? guestName,
+    int? hostId,
+    List<String>? propertyImages,
     double? rating,
     String? review,
   }) {
@@ -101,6 +113,10 @@ class Booking {
       propertyType: propertyType ?? this.propertyType,
       hostName: hostName ?? this.hostName,
       propertyImage: propertyImage ?? this.propertyImage,
+      description: description ?? this.description,
+      guestName: guestName ?? this.guestName,
+      hostId: hostId ?? this.hostId,
+      propertyImages: propertyImages ?? this.propertyImages,
       rating: rating ?? this.rating,
       review: review ?? this.review,
     );
@@ -119,19 +135,34 @@ class Booking {
   factory Booking.fromJson(Map<String, dynamic> json) {
     print('[BOOKING MODEL] Parsing JSON: $json'); // Debug log
     try {
+      final startDate = DateTime.parse(json['start_date']);
+      final endDate = DateTime.parse(json['end_date']);
+
+      // Calculate number of days if not provided
+      final numberOfDays =
+          json['number_of_days'] ?? endDate.difference(startDate).inDays;
+
+      // Parse property images array
+      List<String>? propertyImagesList;
+      if (json['property_images'] != null) {
+        final imagesData = json['property_images'] as List<dynamic>;
+        propertyImagesList =
+            imagesData.map((img) => img['image_url'] as String).toList();
+      }
+
       final booking = Booking(
         bookingId: json['booking_id'],
         propertyId: json['property_id'] ?? 0,
         userId: json['user_ID'] ?? 0, // Handle null user_ID
         status: json['status'] ?? 'Pending',
         bookingDate: DateTime.parse(json['booking_date']),
-        startDate: DateTime.parse(json['start_date']),
-        endDate: DateTime.parse(json['end_date']),
+        startDate: startDate,
+        endDate: endDate,
         totalAmount: json['total_amount'] != null
             ? double.parse(json['total_amount'].toString())
             : 0.0,
         guests: json['guests'] ?? 1,
-        numberOfDays: json['number_of_days'] ?? 0,
+        numberOfDays: numberOfDays,
         title: json['title'],
         city: json['city'],
         rentPerDay: json['rent_per_day'] != null
@@ -140,7 +171,14 @@ class Booking {
         address: json['address'],
         propertyType: json['property_type'],
         hostName: json['host_name'],
-        propertyImage: json['property_image'],
+        propertyImage: json['property_image'] ??
+            (propertyImagesList?.isNotEmpty == true
+                ? propertyImagesList!.first
+                : null),
+        description: json['description'],
+        guestName: json['guest_name'],
+        hostId: json['host_id'],
+        propertyImages: propertyImagesList,
         rating: json['rating'] != null
             ? double.parse(json['rating'].toString())
             : null,

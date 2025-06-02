@@ -71,8 +71,8 @@ class AuthService {
     }
   }
 
-  Future<AuthResult> signup(
-      String username, String email, String password) async {
+  Future<AuthResult> signup(String username, String email, String password,
+      String address, String phoneNo) async {
     try {
       if (_useDirect && _directService != null) {
         // Use direct implementation on macOS
@@ -95,6 +95,8 @@ class AuthService {
             'name': username,
             'email': email,
             'password': password,
+            "address": address,
+            "phone_No": phoneNo,
           },
         );
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/booking_provider.dart';
 import '../../utils/constants.dart';
 
 class NewProfileScreen extends ConsumerWidget {
@@ -9,6 +10,7 @@ class NewProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
+    final bookingState = ref.watch(bookingProvider);
     final user = authState.user;
 
     if (user == null) {
@@ -84,25 +86,29 @@ class NewProfileScreen extends ConsumerWidget {
               () => Navigator.pushNamed(context, AppRoutes.personalInfo),
             ),
 
-            _buildSettingsItem(
-              context,
-              Icons.accessibility_new,
-              'Habits',
-              () => Navigator.pushNamed(context, AppRoutes.habits),
-            ),
+            // _buildSettingsItem(
+            //   context,
+            //   Icons.accessibility_new,
+            //   'Habits',
+            //   () => Navigator.pushNamed(context, AppRoutes.habits),
+            // ),
 
-            _buildSettingsItem(
-              context,
-              Icons.lock_outline,
-              'Login & security',
-              () => Navigator.pushNamed(context, AppRoutes.loginSecurity),
-            ),
+            // _buildSettingsItem(
+            //   context,
+            //   Icons.lock_outline,
+            //   'Login & security',
+            //   () => Navigator.pushNamed(context, AppRoutes.loginSecurity),
+            // ),
 
-            _buildSettingsItem(
+            // Show request pending only for hosts
+            // if (user.isHost)
+            _buildSettingsItemWithBadge(
               context,
+              ref,
               Icons.notifications_none,
-              'Request pending',
-              () => Navigator.pushNamed(context, AppRoutes.requestPending),
+              'Booking Requests',
+              () => Navigator.pushNamed(
+                  context, AppRoutes.requestPendingManagement),
             ),
 
             _buildSettingsItem(
@@ -122,9 +128,18 @@ class NewProfileScreen extends ConsumerWidget {
             _buildSettingsItem(
               context,
               Icons.book_outlined,
-              'Booked property',
-              () => Navigator.pushNamed(context, AppRoutes.bookedProperty),
+              'My Bookings',
+              () => Navigator.pushNamed(context, AppRoutes.userBookings),
             ),
+
+            // Show host bookings only for hosts
+            if (user.isHost)
+              _buildSettingsItem(
+                context,
+                Icons.business_center_outlined,
+                'Property Bookings',
+                () => Navigator.pushNamed(context, AppRoutes.hostBookings),
+              ),
 
             _buildSettingsItem(
               context,
@@ -133,11 +148,14 @@ class NewProfileScreen extends ConsumerWidget {
               () => Navigator.pushNamed(context, AppRoutes.ratePending),
             ),
 
+            // Show booking confirmation for hosts, regular booking confirmation for guests
+            // if (user.isHost)
             _buildSettingsItem(
               context,
               Icons.check_circle_outline,
-              'Booking confirmation',
-              () => Navigator.pushNamed(context, AppRoutes.bookingConfirmation),
+              'Booking Management',
+              () => Navigator.pushNamed(
+                  context, AppRoutes.hostBookingConfirmation),
             ),
 
             const Divider(),
@@ -173,6 +191,48 @@ class NewProfileScreen extends ConsumerWidget {
       leading: Icon(icon, color: Colors.grey[600]),
       title: Text(title),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildSettingsItemWithBadge(
+    BuildContext context,
+    WidgetRef ref,
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+  ) {
+    final bookingState = ref.watch(bookingProvider);
+    final pendingCount = bookingState.bookings
+        .where((booking) => booking.status.toLowerCase() == 'pending')
+        .length;
+
+    return ListTile(
+      leading: Icon(icon, color: Colors.grey[600]),
+      title: Text(title),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (pendingCount > 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                pendingCount.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          const SizedBox(width: 8),
+          const Icon(Icons.arrow_forward_ios, size: 16),
+        ],
+      ),
       onTap: onTap,
     );
   }

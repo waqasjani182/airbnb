@@ -9,13 +9,14 @@ class BookingService {
       : _apiClient = apiClient ?? ApiClient(baseUrl: kBaseUrl);
 
   Future<List<Booking>> getUserBookings(String token) async {
-    final response = await _apiClient.get<List<dynamic>>(
+    final response = await _apiClient.get<Map<String, dynamic>>(
       '/api/bookings/user',
       requiresAuth: true,
     );
 
     if (response.success && response.data != null) {
-      return response.data!.map((json) => _mapJsonToBooking(json)).toList();
+      final bookingsData = response.data!['bookings'] as List<dynamic>;
+      return bookingsData.map((json) => _mapJsonToBooking(json)).toList();
     } else {
       throw Exception(response.error ?? 'Failed to load user bookings');
     }
@@ -28,15 +29,37 @@ class BookingService {
 
   Future<List<Booking>> getPropertyBookings(
       String propertyId, String token) async {
-    final response = await _apiClient.get<List<dynamic>>(
+    final response = await _apiClient.get<Map<String, dynamic>>(
       '/api/bookings/property/$propertyId',
       requiresAuth: true,
     );
 
     if (response.success && response.data != null) {
-      return response.data!.map((json) => _mapJsonToBooking(json)).toList();
+      // Handle both array and object response formats
+      if (response.data! is List) {
+        return (response.data! as List<dynamic>)
+            .map((json) => _mapJsonToBooking(json))
+            .toList();
+      } else {
+        final bookingsData = response.data!['bookings'] as List<dynamic>;
+        return bookingsData.map((json) => _mapJsonToBooking(json)).toList();
+      }
     } else {
       throw Exception(response.error ?? 'Failed to load property bookings');
+    }
+  }
+
+  Future<List<Booking>> getHostBookings(String token) async {
+    final response = await _apiClient.get<Map<String, dynamic>>(
+      '/api/bookings/host',
+      requiresAuth: true,
+    );
+
+    if (response.success && response.data != null) {
+      final bookingsData = response.data!['bookings'] as List<dynamic>;
+      return bookingsData.map((json) => _mapJsonToBooking(json)).toList();
+    } else {
+      throw Exception(response.error ?? 'Failed to load host bookings');
     }
   }
 
@@ -47,7 +70,8 @@ class BookingService {
     );
 
     if (response.success && response.data != null) {
-      return _mapJsonToBooking(response.data!);
+      final bookingData = response.data!['booking'] as Map<String, dynamic>;
+      return _mapJsonToBooking(bookingData);
     } else {
       throw Exception(response.error ?? 'Failed to load booking');
     }
@@ -73,11 +97,28 @@ class BookingService {
 
   Future<Booking> updateBookingStatus(
       String id, BookingStatus status, String token) async {
+    // Convert enum to proper string format
+    String statusString;
+    switch (status) {
+      case BookingStatus.pending:
+        statusString = 'Pending';
+        break;
+      case BookingStatus.confirmed:
+        statusString = 'Confirmed';
+        break;
+      case BookingStatus.cancelled:
+        statusString = 'Cancelled';
+        break;
+      case BookingStatus.completed:
+        statusString = 'Completed';
+        break;
+    }
+
     final response = await _apiClient.put<Map<String, dynamic>>(
       '/api/bookings/$id/status',
       requiresAuth: true,
       body: {
-        'status': status.toString().split('.').last,
+        'status': statusString,
       },
     );
 

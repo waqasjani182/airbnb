@@ -96,10 +96,16 @@ class AppRoutes {
   static const String propertyDetails = '/property_details';
   static const String bookingConfirmation = '/booking_confirmation';
   static const String myProperties = '/my_properties';
+  static const String userPropertyDetails = '/user_property_details';
   static const String uploadProperty = '/upload_property';
   static const String bookedProperty = '/booked_property';
   static const String requestPending = '/request_pending';
   static const String ratePending = '/rate_pending';
+  static const String userBookings = '/user_bookings';
+  static const String hostBookings = '/host_bookings';
+  static const String bookingDetails = '/booking_details';
+  static const String requestPendingManagement = '/request_pending_management';
+  static const String hostBookingConfirmation = '/host_booking_confirmation';
   static const String personalInfo = '/personal_info';
   static const String loginSecurity = '/login_security';
   static const String habits = '/habits';
@@ -115,10 +121,16 @@ class AppRoutes {
     propertyDetails,
     bookingConfirmation,
     myProperties,
+    userPropertyDetails,
     uploadProperty,
     bookedProperty,
     requestPending,
     ratePending,
+    userBookings,
+    hostBookings,
+    bookingDetails,
+    requestPendingManagement,
+    hostBookingConfirmation,
     personalInfo,
     loginSecurity,
     habits,

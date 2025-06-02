@@ -19,6 +19,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String? _errorMessage;
@@ -46,6 +48,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               _usernameController.text.trim(),
               _emailController.text.trim(),
               _passwordController.text,
+              _addressController.text.trim(),
+              _phoneController.text.trim(),
             );
 
         // Check if authentication was successful
@@ -163,6 +167,27 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: Icons.email,
                     validator: Validators.validateEmail,
+                  ),
+
+                  const SizedBox(height: 16),
+                  // Address field
+                  AppTextField(
+                    controller: _addressController,
+                    label: "Address",
+                    hint: "Enter your address",
+                    prefixIcon: Icons.home,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Phone field
+                  AppTextField(
+                    controller: _phoneController,
+                    label: "Phone",
+                    hint: "Enter your phone number",
+                    keyboardType: TextInputType.phone,
+                    prefixIcon: Icons.phone,
+                    validator: Validators.validatePhoneNumber,
                   ),
 
                   const SizedBox(height: 16),

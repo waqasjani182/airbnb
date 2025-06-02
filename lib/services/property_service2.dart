@@ -7,6 +7,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import '../models/property2.dart';
 import '../models/property_response.dart';
+import '../models/user_property.dart';
 import '../utils/constants.dart';
 import 'api_client.dart';
 import 'direct_http_service.dart';
@@ -64,6 +65,36 @@ class PropertyService2 {
       return Property2.fromJson(response.data!);
     } else {
       throw Exception(response.error ?? 'Failed to load property');
+    }
+  }
+
+  // Get user properties
+  Future<UserPropertiesResponse> getUserProperties({String? token}) async {
+    try {
+      if (_useDirect && _directHttpService != null) {
+        // Use direct HTTP service on macOS
+        final data = await _directHttpService.get(
+          '/api/users/properties/',
+          token: token,
+        );
+        return UserPropertiesResponse.fromJson(data);
+      } else {
+        // Use ApiClient on other platforms
+        final response = await _apiClient.get<Map<String, dynamic>>(
+          '/api/users/properties/',
+          requiresAuth: token != null,
+          headers: token != null ? {'Authorization': 'Bearer $token'} : null,
+        );
+
+        if (response.success && response.data != null) {
+          return UserPropertiesResponse.fromJson(response.data!);
+        } else {
+          throw Exception(response.error ?? 'Failed to load user properties');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting user properties: $e');
+      throw Exception('Failed to load user properties: $e');
     }
   }
 

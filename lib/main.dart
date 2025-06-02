@@ -13,6 +13,13 @@ import 'screens/profile/personal_info_screen.dart';
 import 'screens/search/search_screen.dart';
 import 'screens/property/property_detail_screen.dart';
 import 'screens/property/upload_property_screen.dart';
+import 'screens/property/my_properties_screen.dart';
+import 'screens/property/user_property_detail_screen.dart';
+import 'screens/booking/user_bookings_screen.dart';
+import 'screens/booking/host_bookings_screen.dart';
+import 'screens/booking/booking_details_screen.dart';
+import 'screens/booking/request_pending_screen.dart';
+import 'screens/booking/host_booking_confirmation_screen.dart';
 import 'screens/common/coming_soon_screen.dart';
 import 'screens/common/not_found_screen.dart';
 import 'services/navigation_service.dart';
@@ -65,6 +72,13 @@ class MyApp extends ConsumerWidget {
         AppRoutes.search: (context) => const SearchScreen(),
         AppRoutes.propertyDetails: (context) => const PropertyDetailScreen(),
         AppRoutes.uploadProperty: (context) => const UploadPropertyScreen(),
+        AppRoutes.myProperties: (context) => const MyPropertiesScreen(),
+        AppRoutes.userBookings: (context) => const UserBookingsScreen(),
+        AppRoutes.hostBookings: (context) => const HostBookingsScreen(),
+        AppRoutes.requestPendingManagement: (context) =>
+            const RequestPendingScreen(),
+        AppRoutes.hostBookingConfirmation: (context) =>
+            const HostBookingConfirmationScreen(),
         AppRoutes.personalInfo: (context) => const PersonalInfoScreen(),
       },
       onGenerateRoute: (settings) {
@@ -75,6 +89,25 @@ class MyApp extends ConsumerWidget {
           // Use PropertyDetailScreen for the property details screen
           return MaterialPageRoute(
             builder: (context) => PropertyDetailScreen(propertyId: propertyId),
+          );
+        }
+
+        // Handle user property details route
+        if (settings.name?.startsWith('${AppRoutes.userPropertyDetails}/') ??
+            false) {
+          final propertyId = settings.name!.split('/').last;
+          return MaterialPageRoute(
+            builder: (context) =>
+                UserPropertyDetailScreen(propertyId: propertyId),
+          );
+        }
+
+        // Handle booking details route
+        if (settings.name?.startsWith('${AppRoutes.bookingDetails}/') ??
+            false) {
+          final bookingId = settings.name!.split('/').last;
+          return MaterialPageRoute(
+            builder: (context) => BookingDetailsScreen(bookingId: bookingId),
           );
         }
 
@@ -89,6 +122,12 @@ class MyApp extends ConsumerWidget {
             AppRoutes.search,
             AppRoutes.propertyDetails,
             AppRoutes.uploadProperty,
+            AppRoutes.myProperties,
+            AppRoutes.userBookings,
+            AppRoutes.hostBookings,
+            AppRoutes.bookingDetails,
+            AppRoutes.requestPendingManagement,
+            AppRoutes.hostBookingConfirmation,
             AppRoutes.personalInfo,
           };
 
