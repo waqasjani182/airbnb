@@ -1,4 +1,5 @@
 import '../models/booking.dart';
+import '../models/availability.dart';
 import '../utils/constants.dart';
 import 'api_client.dart';
 
@@ -144,6 +145,34 @@ class BookingService {
       return _mapJsonToBooking(response.data!);
     } else {
       throw Exception(response.error ?? 'Failed to add review');
+    }
+  }
+
+  // Check property availability
+  Future<PropertyAvailability> checkAvailability({
+    required String propertyId,
+    required String startDate,
+    required String endDate,
+    required int guests,
+    String? token,
+  }) async {
+    final queryParams = {
+      'property_id': propertyId,
+      'start_date': startDate,
+      'end_date': endDate,
+      'guests': guests.toString(),
+    };
+
+    final response = await _apiClient.get<Map<String, dynamic>>(
+      '/api/bookings/availability',
+      requiresAuth: token != null,
+      queryParams: queryParams,
+    );
+
+    if (response.success && response.data != null) {
+      return PropertyAvailability.fromJson(response.data!);
+    } else {
+      throw Exception(response.error ?? 'Failed to check availability');
     }
   }
 }

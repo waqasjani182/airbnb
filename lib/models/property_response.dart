@@ -32,16 +32,31 @@ class PropertyResponse {
   }
 
   factory PropertyResponse.fromJson(Map<String, dynamic> json) {
+    print('PropertyResponse.fromJson - Raw JSON: $json');
+
     List<Property2> propertiesList = [];
     if (json['properties'] != null && json['properties'] is List) {
-      propertiesList = (json['properties'] as List)
-          .map((propertyJson) => Property2.fromJson(propertyJson))
-          .toList();
+      print(
+          'PropertyResponse.fromJson - Found ${(json['properties'] as List).length} properties');
+      try {
+        propertiesList = (json['properties'] as List).map((propertyJson) {
+          print('PropertyResponse.fromJson - Parsing property: $propertyJson');
+          return Property2.fromJson(propertyJson);
+        }).toList();
+        print(
+            'PropertyResponse.fromJson - Successfully parsed ${propertiesList.length} properties');
+      } catch (e) {
+        print('PropertyResponse.fromJson - Error parsing properties: $e');
+        rethrow;
+      }
+    } else {
+      print('PropertyResponse.fromJson - No properties found in response');
     }
 
     return PropertyResponse(
       properties: propertiesList,
-      pagination: json['pagination'] ?? {'total': 0, 'page': 1, 'limit': 10, 'pages': 1},
+      pagination: json['pagination'] ??
+          {'total': 0, 'page': 1, 'limit': 10, 'pages': 1},
     );
   }
 

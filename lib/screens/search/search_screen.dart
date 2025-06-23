@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../components/common/app_button.dart';
-import '../../components/property/property_card.dart';
-import '../../providers/property_provider.dart';
+import '../../components/property/property_card2.dart';
+import '../../components/map/location_picker_map.dart';
+import '../../providers/property_provider2.dart';
 import '../../utils/constants.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
@@ -14,7 +15,6 @@ class SearchScreen extends ConsumerStatefulWidget {
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _minPriceController = TextEditingController();
   final TextEditingController _maxPriceController = TextEditingController();
@@ -36,7 +36,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   void dispose() {
     _searchController.dispose();
-    _locationController.dispose();
     _cityController.dispose();
     _minPriceController.dispose();
     _maxPriceController.dispose();
@@ -56,11 +55,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     });
 
     try {
-      await ref.read(propertyProvider.notifier).searchProperties(
+      await ref.read(propertyProvider2.notifier).searchProperties(
             _searchController.text,
-            location: _locationController.text.isNotEmpty
-                ? _locationController.text
-                : null,
             city: _cityController.text.isNotEmpty ? _cityController.text : null,
             minPrice: _minPriceController.text.isNotEmpty
                 ? double.parse(_minPriceController.text)
@@ -93,7 +89,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void _clearFilters() {
     setState(() {
       _searchController.clear();
-      _locationController.clear();
       _cityController.clear();
       _minPriceController.clear();
       _maxPriceController.clear();
@@ -103,9 +98,99 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     });
   }
 
+  // Open map picker for city selection
+  void _openMapPicker() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.8,
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              children: [
+                // Dialog header
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(AppBorderRadius.medium),
+                      topRight: Radius.circular(AppBorderRadius.medium),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Select City on Map',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                // Map component
+                Expanded(
+                  child: LocationPickerMap(
+                    initialLatitude: 37.7749, // Default to San Francisco
+                    initialLongitude: -122.4194,
+                    showSearchBar: true,
+                    onLocationSelected: (latitude, longitude, address, city) {
+                      // Update the city field with selected city
+                      setState(() {
+                        _cityController.text = city;
+                      });
+                      // Close the dialog
+                      Navigator.of(context).pop();
+                      // Show confirmation
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('City selected: $city'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                // Dialog footer with instructions
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(AppBorderRadius.medium),
+                      bottomRight: Radius.circular(AppBorderRadius.medium),
+                    ),
+                  ),
+                  child: const Text(
+                    'Tap on the map or search for a location to select a city',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final propertyState = ref.watch(propertyProvider);
+    final propertyState = ref.watch(propertyProvider2);
 
     return Scaffold(
       appBar: AppBar(
@@ -125,27 +210,50 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           // Search bar
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search properties...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search properties...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppBorderRadius.medium),
+                          ),
+                        ),
+                        onSubmitted: (_) => _search(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    AppButton(
+                      text: 'Search',
+                      onPressed: _search,
+                      isLoading: _isSearching,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Map search button
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _openMapPicker,
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text('Search by Map Location'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
                         borderRadius:
                             BorderRadius.circular(AppBorderRadius.medium),
                       ),
                     ),
-                    onSubmitted: (_) => _search(),
                   ),
-                ),
-                const SizedBox(width: 8),
-                AppButton(
-                  text: 'Search',
-                  onPressed: _search,
-                  isLoading: _isSearching,
                 ),
               ],
             ),
@@ -170,26 +278,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // Location filter
-                    TextField(
-                      controller: _locationController,
-                      decoration: InputDecoration(
-                        hintText: 'Location',
-                        prefixIcon: const Icon(Icons.location_on),
-                        border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppBorderRadius.medium),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // City filter
+                    // City filter with map button
                     TextField(
                       controller: _cityController,
                       decoration: InputDecoration(
                         hintText: 'City',
                         prefixIcon: const Icon(Icons.location_city),
+                        suffixIcon: IconButton(
+                          icon: const Icon(
+                            Icons.map,
+                            color: AppColors.primary,
+                          ),
+                          onPressed: _openMapPicker,
+                          tooltip: 'Select city on map',
+                        ),
                         border: OutlineInputBorder(
                           borderRadius:
                               BorderRadius.circular(AppBorderRadius.medium),
@@ -234,49 +336,51 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // Bedrooms and Property Type
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _bedroomsController,
-                            decoration: InputDecoration(
-                              hintText: 'Bedrooms',
-                              prefixIcon: const Icon(Icons.bed),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                    AppBorderRadius.medium),
-                              ),
-                            ),
-                            keyboardType: TextInputType.number,
-                          ),
+                    // Bedrooms
+                    TextField(
+                      controller: _bedroomsController,
+                      decoration: InputDecoration(
+                        hintText: 'Bedrooms',
+                        prefixIcon: const Icon(Icons.bed),
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppBorderRadius.medium),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedPropertyType,
-                            decoration: InputDecoration(
-                              hintText: 'Property Type',
-                              prefixIcon: const Icon(Icons.house),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                    AppBorderRadius.medium),
-                              ),
-                            ),
-                            items: _propertyTypes.map((type) {
-                              return DropdownMenuItem<String>(
-                                value: type,
-                                child: Text(type),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedPropertyType = value;
-                              });
-                            },
-                          ),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Property Type
+                    DropdownButtonFormField<String>(
+                      value: _selectedPropertyType,
+                      decoration: InputDecoration(
+                        hintText: 'Property Type',
+                        prefixIcon: const Icon(Icons.house),
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppBorderRadius.medium),
                         ),
-                      ],
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                      ),
+                      isExpanded: true,
+                      items: _propertyTypes.map((type) {
+                        return DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(
+                            type,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedPropertyType = value;
+                        });
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -315,12 +419,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           final property = propertyState.properties[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
-                            child: PropertyCard(
+                            child: PropertyCard2(
                               property: property,
                               onTap: () {
                                 Navigator.pushNamed(
                                   context,
-                                  '${AppRoutes.propertyDetails}/${property.id}',
+                                  '${AppRoutes.propertyDetails}/${property.propertyId}',
                                 );
                               },
                               onFavoriteToggle: () {

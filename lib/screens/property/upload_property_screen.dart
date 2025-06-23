@@ -474,8 +474,8 @@ class _UploadPropertyScreenState extends ConsumerState<UploadPropertyScreen> {
           longitude: double.tryParse(_longitudeController.text) ?? 0.0,
           rentPerDay: double.parse(_priceController.text),
           guest: int.parse(_maxGuestsController.text),
-          hostName: '', // Will be filled by the server
-          rating: 0.0, // Default value
+          hostName: null, // Will be filled by the server
+          rating: null, // Default value
           images: [], // Images will be uploaded with the property
           facilities: facilities,
           reviews: [],

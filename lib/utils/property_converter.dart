@@ -36,7 +36,7 @@ class PropertyConverter {
     }).toList();
 
     // Extract first and last name from host_name
-    List<String> nameParts = property2.hostName.split(' ');
+    List<String> nameParts = property2.hostName?.split(' ') ?? [];
     String firstName = nameParts.isNotEmpty ? nameParts[0] : '';
     String lastName =
         nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';

@@ -458,19 +458,34 @@ class ApiClient {
       try {
         final jsonData = json.decode(response.body);
 
+        if (kEnableApiLogging) {
+          developer.log('RESPONSE PROCESSING: Parsed JSON data: $jsonData',
+              name: 'API');
+        }
+
         if (fromJson != null) {
           if (kEnableApiLogging) {
             developer.log('RESPONSE PROCESSING: Using fromJson converter',
                 name: 'API');
           }
           final data = fromJson(jsonData);
+          if (kEnableApiLogging) {
+            developer.log('RESPONSE PROCESSING: fromJson result: $data',
+                name: 'API');
+          }
           return ApiResponse<T>(success: true, data: data);
         }
 
         if (kEnableApiLogging) {
           developer.log('RESPONSE PROCESSING: Using direct cast', name: 'API');
         }
-        return ApiResponse<T>(success: true, data: jsonData as T);
+        final result = ApiResponse<T>(success: true, data: jsonData as T);
+        if (kEnableApiLogging) {
+          developer.log(
+              'RESPONSE PROCESSING: Direct cast result: ${result.data}',
+              name: 'API');
+        }
+        return result;
       } catch (e) {
         if (kEnableApiLogging) {
           developer.log('RESPONSE PROCESSING ERROR: Failed to parse JSON: $e',

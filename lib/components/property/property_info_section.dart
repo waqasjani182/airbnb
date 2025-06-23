@@ -118,7 +118,7 @@ class PropertyInfoSection extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              'Hosted by ${property.hostName}',
+              'Hosted by ${property.hostName ?? 'Unknown Host'}',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,

@@ -169,10 +169,16 @@ class PropertyNotifier2 extends StateNotifier<PropertyState2> {
     String? city,
     double? minPrice,
     double? maxPrice,
+    int? bedrooms,
     String? propertyType,
     int? page,
     int? limit,
   }) async {
+    print(
+        'PropertyProvider2.searchProperties - Starting search with query: $query');
+    print(
+        'PropertyProvider2.searchProperties - Parameters: city=$city, minPrice=$minPrice, maxPrice=$maxPrice, bedrooms=$bedrooms, propertyType=$propertyType');
+
     state = state.copyWith(
       isLoading: true,
       errorMessage: null, // Clear previous errors
@@ -183,18 +189,29 @@ class PropertyNotifier2 extends StateNotifier<PropertyState2> {
         city: city,
         minPrice: minPrice,
         maxPrice: maxPrice,
+        bedrooms: bedrooms,
         propertyType: propertyType,
         page: page,
         limit: limit,
         token: _authToken,
       );
+
+      print(
+          'PropertyProvider2.searchProperties - Response received: ${response.properties.length} properties');
+      print(
+          'PropertyProvider2.searchProperties - Properties: ${response.properties.map((p) => p.title).toList()}');
+
       state = state.copyWith(
         properties: response.properties,
         pagination: response.pagination,
         isLoading: false,
         status: PropertyStatus.success,
       );
+
+      print(
+          'PropertyProvider2.searchProperties - State updated with ${state.properties.length} properties');
     } catch (e) {
+      print('PropertyProvider2.searchProperties - Error: $e');
       state = state.copyWith(
         errorMessage: e.toString(),
         isLoading: false,

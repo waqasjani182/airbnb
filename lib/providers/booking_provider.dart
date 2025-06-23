@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/booking.dart';
+import '../models/availability.dart';
 import '../services/booking_service.dart';
 import 'auth_provider.dart';
 import 'api_provider.dart';
@@ -244,6 +245,25 @@ class BookingNotifier extends StateNotifier<BookingState> {
     return !bookings.any((booking) =>
         booking.status.toLowerCase() == 'confirmed' ||
         booking.status.toLowerCase() == 'pending');
+  }
+
+  // Check property availability via API
+  Future<PropertyAvailability> checkPropertyAvailability({
+    required String propertyId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required int guests,
+  }) async {
+    final startDateStr = startDate.toIso8601String().split('T')[0];
+    final endDateStr = endDate.toIso8601String().split('T')[0];
+
+    return await _bookingService.checkAvailability(
+      propertyId: propertyId,
+      startDate: startDateStr,
+      endDate: endDateStr,
+      guests: guests,
+      token: _authToken,
+    );
   }
 }
 

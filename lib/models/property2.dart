@@ -9,14 +9,14 @@ class Property2 {
   final String propertyType;
   final double rentPerDay;
   final String address;
-  final double rating;
+  final double? rating;
   final String city;
   final double longitude;
   final double latitude;
   final String title;
   final String description;
   final int guest;
-  final String hostName;
+  final String? hostName;
   final List<PropertyImage2> images;
   final List<Facility> facilities;
   final List<PropertyReview> reviews;
@@ -32,14 +32,14 @@ class Property2 {
     required this.propertyType,
     required this.rentPerDay,
     required this.address,
-    required this.rating,
+    this.rating,
     required this.city,
     required this.longitude,
     required this.latitude,
     required this.title,
     required this.description,
     required this.guest,
-    required this.hostName,
+    this.hostName,
     this.images = const [],
     this.facilities = const [],
     this.reviews = const [],
@@ -140,11 +140,16 @@ class Property2 {
   }
 
   factory Property2.fromJson(Map<String, dynamic> json) {
+    print('Property2.fromJson - Input JSON: $json');
+
     // Check if the response has a 'property' wrapper
     Map<String, dynamic> propertyData = json;
     if (json.containsKey('property') &&
         json['property'] is Map<String, dynamic>) {
       propertyData = json['property'] as Map<String, dynamic>;
+      print('Property2.fromJson - Using wrapped property data');
+    } else {
+      print('Property2.fromJson - Using direct property data');
     }
 
     // Handle images
@@ -173,6 +178,13 @@ class Property2 {
     }
 
     // Parse numeric values safely
+    double? parseNullableDoubleValue(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value.toDouble();
+      if (value is double) return value;
+      return double.tryParse(value.toString());
+    }
+
     double parseDoubleValue(dynamic value) {
       if (value == null) return 0.0;
       if (value is int) return value.toDouble();
@@ -186,20 +198,20 @@ class Property2 {
       return int.tryParse(value.toString()) ?? 0;
     }
 
-    return Property2(
+    final property = Property2(
       propertyId: parseIntValue(propertyData['property_id']),
       userId: parseIntValue(propertyData['user_id']),
       propertyType: propertyData['property_type'] ?? '',
       rentPerDay: parseDoubleValue(propertyData['rent_per_day']),
       address: propertyData['address'] ?? '',
-      rating: parseDoubleValue(propertyData['rating']),
+      rating: parseNullableDoubleValue(propertyData['rating']),
       city: propertyData['city'] ?? '',
       longitude: parseDoubleValue(propertyData['longitude']),
       latitude: parseDoubleValue(propertyData['latitude']),
       title: propertyData['title'] ?? '',
       description: propertyData['description'] ?? '',
       guest: parseIntValue(propertyData['guest']),
-      hostName: propertyData['host_name'] ?? '',
+      hostName: propertyData['host_name'],
       images: imagesList,
       facilities: facilitiesList,
       reviews: reviewsList,
@@ -215,6 +227,10 @@ class Property2 {
           ? parseIntValue(propertyData['total_beds'])
           : null,
     );
+
+    print(
+        'Property2.fromJson - Successfully created property: ${property.title} (ID: ${property.propertyId})');
+    return property;
   }
 
   @override
