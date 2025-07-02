@@ -50,5 +50,9 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs location access to help you find properties near you and select locations on the map.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs location access to help you find properties near you and select locations on the map.</string>
 </dict>
 </plist>

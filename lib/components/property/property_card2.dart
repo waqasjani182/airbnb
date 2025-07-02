@@ -63,9 +63,7 @@ class PropertyCard2 extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Icon(
-                          isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border,
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
                           color: isFavorite ? Colors.red : Colors.grey,
                           size: 20,
                         ),
@@ -140,7 +138,8 @@ class PropertyCard2 extends StatelessWidget {
                       _buildFeature(Icons.category, property.propertyType),
                       if (property.facilities.isNotEmpty) ...[
                         const SizedBox(width: 16),
-                        _buildFeature(Icons.wifi, property.facilities.first.facilityType),
+                        _buildFeature(
+                            Icons.wifi, property.facilities.first.facilityType),
                       ],
                     ],
                   ),
@@ -151,7 +150,7 @@ class PropertyCard2 extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '\$${property.rentPerDay.toStringAsFixed(0)}',
+                        'RS ${property.rentPerDay.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

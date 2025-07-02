@@ -22,6 +22,7 @@ import 'screens/booking/request_pending_screen.dart';
 import 'screens/booking/host_booking_confirmation_screen.dart';
 import 'screens/common/coming_soon_screen.dart';
 import 'screens/common/not_found_screen.dart';
+import 'screens/profile/user_reviews_screen.dart';
 import 'services/navigation_service.dart';
 import 'utils/constants.dart';
 import 'utils/theme.dart';
@@ -80,6 +81,7 @@ class MyApp extends ConsumerWidget {
         AppRoutes.hostBookingConfirmation: (context) =>
             const HostBookingConfirmationScreen(),
         AppRoutes.personalInfo: (context) => const PersonalInfoScreen(),
+        AppRoutes.userReviews: (context) => const UserReviewsScreen(),
       },
       onGenerateRoute: (settings) {
         // Handle dynamic routes here

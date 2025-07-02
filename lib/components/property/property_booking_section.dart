@@ -405,12 +405,12 @@ class _PropertyBookingSectionState
                   children: [
                     Text(
                       _availabilityData != null
-                          ? '\$${_availabilityData!.pricePerDay.toStringAsFixed(0)} x $nights ${nights == 1 ? 'night' : 'nights'}'
-                          : '\$${widget.property.rentPerDay.toStringAsFixed(0)} x $nights ${nights == 1 ? 'night' : 'nights'}',
+                          ? 'RS ${_availabilityData!.pricePerDay.toStringAsFixed(0)} x $nights ${nights == 1 ? 'night' : 'nights'}'
+                          : 'RS ${widget.property.rentPerDay.toStringAsFixed(0)} x $nights ${nights == 1 ? 'night' : 'nights'}',
                       style: const TextStyle(fontSize: 16),
                     ),
                     Text(
-                      '\$${totalPrice.toStringAsFixed(0)}',
+                      'RS ${totalPrice.toStringAsFixed(0)}',
                       style: const TextStyle(fontSize: 16),
                     ),
                   ],
@@ -427,7 +427,7 @@ class _PropertyBookingSectionState
                       ),
                     ),
                     Text(
-                      '\$${totalPrice.toStringAsFixed(0)}',
+                      'RS ${totalPrice.toStringAsFixed(0)}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

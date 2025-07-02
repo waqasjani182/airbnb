@@ -20,6 +20,11 @@ class PropertyReview {
   final String? propertyReview;
   final String? name;
 
+  // Additional fields for enhanced review functionality
+  final String? propertyTitle;
+  final String? propertyCity;
+  final String? propertyImage;
+
   PropertyReview({
     required this.id,
     required this.propertyId,
@@ -39,6 +44,9 @@ class PropertyReview {
     this.propertyRating,
     this.propertyReview,
     this.name,
+    this.propertyTitle,
+    this.propertyCity,
+    this.propertyImage,
   });
 
   PropertyReview copyWith({
@@ -60,6 +68,9 @@ class PropertyReview {
     double? propertyRating,
     String? propertyReview,
     String? name,
+    String? propertyTitle,
+    String? propertyCity,
+    String? propertyImage,
   }) {
     return PropertyReview(
       id: id ?? this.id,
@@ -80,6 +91,9 @@ class PropertyReview {
       propertyRating: propertyRating ?? this.propertyRating,
       propertyReview: propertyReview ?? this.propertyReview,
       name: name ?? this.name,
+      propertyTitle: propertyTitle ?? this.propertyTitle,
+      propertyCity: propertyCity ?? this.propertyCity,
+      propertyImage: propertyImage ?? this.propertyImage,
     );
   }
 
@@ -103,6 +117,9 @@ class PropertyReview {
       'property_rating': propertyRating,
       'property_review': propertyReview,
       'name': name,
+      'property_title': propertyTitle,
+      'property_city': propertyCity,
+      'property_image': propertyImage,
     };
   }
 
@@ -136,6 +153,9 @@ class PropertyReview {
       propertyRating: parseDoubleValue(json['property_rating']),
       propertyReview: json['property_review'],
       name: json['name'],
+      propertyTitle: json['property_title'],
+      propertyCity: json['property_city'],
+      propertyImage: json['property_image'],
     );
   }
 
@@ -160,7 +180,10 @@ class PropertyReview {
         other.ownerReview == ownerReview &&
         other.propertyRating == propertyRating &&
         other.propertyReview == propertyReview &&
-        other.name == name;
+        other.name == name &&
+        other.propertyTitle == propertyTitle &&
+        other.propertyCity == propertyCity &&
+        other.propertyImage == propertyImage;
   }
 
   @override
@@ -182,6 +205,9 @@ class PropertyReview {
         ownerReview.hashCode ^
         propertyRating.hashCode ^
         propertyReview.hashCode ^
-        name.hashCode;
+        name.hashCode ^
+        propertyTitle.hashCode ^
+        propertyCity.hashCode ^
+        propertyImage.hashCode;
   }
 }

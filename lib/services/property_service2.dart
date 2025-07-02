@@ -379,6 +379,10 @@ class PropertyService2 {
     double? maxPrice,
     int? bedrooms,
     String? propertyType,
+    double? minRating,
+    double? maxRating,
+    DateTime? checkInDate,
+    DateTime? checkOutDate,
     int? page,
     int? limit,
     String? token,
@@ -390,6 +394,12 @@ class PropertyService2 {
       if (maxPrice != null) 'max_price': maxPrice.toString(),
       if (bedrooms != null) 'bedrooms': bedrooms.toString(),
       if (propertyType != null) 'property_type': propertyType,
+      if (minRating != null) 'min_rating': minRating.toString(),
+      if (maxRating != null) 'max_rating': maxRating.toString(),
+      if (checkInDate != null)
+        'check_in_date': checkInDate.toIso8601String().split('T')[0],
+      if (checkOutDate != null)
+        'check_out_date': checkOutDate.toIso8601String().split('T')[0],
       if (page != null) 'page': page.toString(),
       if (limit != null) 'limit': limit.toString(),
     };

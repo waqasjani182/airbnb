@@ -109,6 +109,9 @@ class AppRoutes {
   static const String personalInfo = '/personal_info';
   static const String loginSecurity = '/login_security';
   static const String habits = '/habits';
+  static const String propertyReviews = '/property_reviews';
+  static const String userReviews = '/user_reviews';
+  static const String hostReviews = '/host_reviews';
 
   // List of all routes for easy access
   static final List<String> values = [
@@ -134,6 +137,9 @@ class AppRoutes {
     personalInfo,
     loginSecurity,
     habits,
+    propertyReviews,
+    userReviews,
+    hostReviews,
   ];
 }
 

@@ -46,7 +46,7 @@ class PropertyInfoSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '\$${property.rentPerDay.toStringAsFixed(0)}',
+                  'RS ${property.rentPerDay.toStringAsFixed(0)}',
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -75,11 +75,15 @@ class PropertyInfoSection extends StatelessWidget {
               color: AppColors.textLight,
             ),
             const SizedBox(width: 4),
-            Text(
-              '${property.city}, ${property.address}',
-              style: const TextStyle(
-                fontSize: 16,
-                color: AppColors.textLight,
+            Expanded(
+              child: Text(
+                property.address,
+                // maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textLight,
+                ),
               ),
             ),
           ],

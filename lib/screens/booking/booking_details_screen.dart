@@ -7,6 +7,7 @@ import '../../providers/booking_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
 import '../../models/booking.dart';
+import '../../components/common/review_form.dart';
 import 'components/booking_status_badge.dart';
 
 class BookingDetailsScreen extends ConsumerStatefulWidget {
@@ -372,9 +373,9 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
             const SizedBox(height: AppSpacing.medium),
             if (booking.rentPerDay != null)
               _buildInfoRow('Rate per night',
-                  '\$${booking.rentPerDay!.toStringAsFixed(2)}'),
+                  'RS ${booking.rentPerDay!.toStringAsFixed(2)}'),
             _buildInfoRow(
-                'Total amount', '\$${booking.totalAmount.toStringAsFixed(2)}'),
+                'Total amount', 'RS ${booking.totalAmount.toStringAsFixed(2)}'),
           ],
         ),
       ),
@@ -447,6 +448,19 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
               child: const Text('Mark as Completed'),
             ),
           ),
+        ] else if (status == 'completed') ...[
+          // Review button for completed bookings
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => _showReviewDialog(booking),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: Text(isHost ? 'Review Guest' : 'Write Review'),
+            ),
+          ),
         ] else if (!isHost &&
             (status == 'pending' || status == 'confirmed')) ...[
           SizedBox(
@@ -491,6 +505,36 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: AppColors.success,
+      ),
+    );
+  }
+
+  void _showReviewDialog(Booking booking) {
+    final authState = ref.read(authProvider);
+    final isHost = authState.user?.isHost ?? false;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: ReviewForm(
+            bookingId: booking.bookingId ?? 0,
+            propertyId: booking.propertyId,
+            propertyTitle: booking.title ?? 'Property',
+            isHostReview: isHost,
+            onSuccess: (review) {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Review submitted successfully!'),
+                  backgroundColor: AppColors.success,
+                ),
+              );
+            },
+            onCancel: () => Navigator.of(context).pop(),
+          ),
+        ),
       ),
     );
   }

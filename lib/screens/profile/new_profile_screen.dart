@@ -10,7 +10,6 @@ class NewProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
-    final bookingState = ref.watch(bookingProvider);
     final user = authState.user;
 
     if (user == null) {
@@ -143,9 +142,9 @@ class NewProfileScreen extends ConsumerWidget {
 
             _buildSettingsItem(
               context,
-              Icons.star_border,
-              'Rate pending',
-              () => Navigator.pushNamed(context, AppRoutes.ratePending),
+              Icons.rate_review_outlined,
+              'My Reviews',
+              () => Navigator.pushNamed(context, AppRoutes.userReviews),
             ),
 
             // Show booking confirmation for hosts, regular booking confirmation for guests

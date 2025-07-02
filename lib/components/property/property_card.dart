@@ -150,7 +150,7 @@ class PropertyCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '\$${property.pricePerNight.toStringAsFixed(0)}',
+                        'RS ${property.pricePerNight.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

@@ -19,18 +19,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _minPriceController = TextEditingController();
   final TextEditingController _maxPriceController = TextEditingController();
   final TextEditingController _bedroomsController = TextEditingController();
+  final TextEditingController _minRatingController = TextEditingController();
+  final TextEditingController _maxRatingController = TextEditingController();
   String? _selectedPropertyType;
+  DateTime? _checkInDate;
+  DateTime? _checkOutDate;
   int _page = 1;
   // int _limit = 10;
   bool _isFilterVisible = false;
   bool _isSearching = false;
+  bool _isMapVisible = false;
 
   final List<String> _propertyTypes = [
     'Apartment',
     'House',
-    'Villa',
-    'Cabin',
-    'Hotel',
+    'Rooms',
   ];
 
   @override
@@ -40,6 +43,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     _minPriceController.dispose();
     _maxPriceController.dispose();
     _bedroomsController.dispose();
+    _minRatingController.dispose();
+    _maxRatingController.dispose();
     super.dispose();
   }
 
@@ -68,6 +73,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ? int.parse(_bedroomsController.text)
                 : null,
             propertyType: _selectedPropertyType,
+            minRating: _minRatingController.text.isNotEmpty
+                ? double.parse(_minRatingController.text)
+                : null,
+            maxRating: _maxRatingController.text.isNotEmpty
+                ? double.parse(_maxRatingController.text)
+                : null,
+            checkInDate: _checkInDate,
+            checkOutDate: _checkOutDate,
             page: _page,
             // limit: _limit,
           );
@@ -93,99 +106,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       _minPriceController.clear();
       _maxPriceController.clear();
       _bedroomsController.clear();
+      _minRatingController.clear();
+      _maxRatingController.clear();
       _selectedPropertyType = null;
+      _checkInDate = null;
+      _checkOutDate = null;
       _page = 1;
     });
   }
 
-  // Open map picker for city selection
-  void _openMapPicker() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          insetPadding: const EdgeInsets.all(16),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.8,
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              children: [
-                // Dialog header
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(AppBorderRadius.medium),
-                      topRight: Radius.circular(AppBorderRadius.medium),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Select City on Map',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ],
-                  ),
-                ),
-                // Map component
-                Expanded(
-                  child: LocationPickerMap(
-                    initialLatitude: 37.7749, // Default to San Francisco
-                    initialLongitude: -122.4194,
-                    showSearchBar: true,
-                    onLocationSelected: (latitude, longitude, address, city) {
-                      // Update the city field with selected city
-                      setState(() {
-                        _cityController.text = city;
-                      });
-                      // Close the dialog
-                      Navigator.of(context).pop();
-                      // Show confirmation
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('City selected: $city'),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                // Dialog footer with instructions
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(AppBorderRadius.medium),
-                      bottomRight: Radius.circular(AppBorderRadius.medium),
-                    ),
-                  ),
-                  child: const Text(
-                    'Tap on the map or search for a location to select a city',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  // Toggle map visibility
+  void _toggleMapVisibility() {
+    setState(() {
+      _isMapVisible = !_isMapVisible;
+    });
   }
 
   @override
@@ -241,9 +175,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: _openMapPicker,
-                    icon: const Icon(Icons.map_outlined),
-                    label: const Text('Search by Map Location'),
+                    onPressed: _toggleMapVisibility,
+                    icon: Icon(_isMapVisible ? Icons.map_outlined : Icons.map),
+                    label: Text(_isMapVisible
+                        ? 'Hide Map'
+                        : 'Show Map for Location Search'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       side: const BorderSide(color: AppColors.primary),
@@ -262,7 +198,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           // Filters
           AnimatedContainer(
             duration: AppDurations.medium,
-            height: _isFilterVisible ? 350 : 0,
+            height: _isFilterVisible ? 500 : 0,
             child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -289,8 +225,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             Icons.map,
                             color: AppColors.primary,
                           ),
-                          onPressed: _openMapPicker,
-                          tooltip: 'Select city on map',
+                          onPressed: _toggleMapVisibility,
+                          tooltip: 'Toggle map visibility',
                         ),
                         border: OutlineInputBorder(
                           borderRadius:
@@ -382,6 +318,154 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         });
                       },
                     ),
+                    const SizedBox(height: 8),
+
+                    // Rating range
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _minRatingController,
+                            decoration: InputDecoration(
+                              hintText: 'Min Rating (1-5)',
+                              prefixIcon: const Icon(Icons.star_border),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppBorderRadius.medium),
+                              ),
+                            ),
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: _maxRatingController,
+                            decoration: InputDecoration(
+                              hintText: 'Max Rating (1-5)',
+                              prefixIcon: const Icon(Icons.star),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppBorderRadius.medium),
+                              ),
+                            ),
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Date range
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: _checkInDate ?? DateTime.now(),
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime.now()
+                                    .add(const Duration(days: 365)),
+                              );
+                              if (date != null) {
+                                setState(() {
+                                  _checkInDate = date;
+                                });
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(
+                                    AppBorderRadius.medium),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.calendar_today,
+                                      color: Colors.grey),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _checkInDate != null
+                                          ? '${_checkInDate!.day}/${_checkInDate!.month}/${_checkInDate!.year}'
+                                          : 'Check-in Date',
+                                      style: TextStyle(
+                                        color: _checkInDate != null
+                                            ? Colors.black
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: _checkOutDate ??
+                                    (_checkInDate
+                                            ?.add(const Duration(days: 1)) ??
+                                        DateTime.now()
+                                            .add(const Duration(days: 1))),
+                                firstDate: _checkInDate
+                                        ?.add(const Duration(days: 1)) ??
+                                    DateTime.now().add(const Duration(days: 1)),
+                                lastDate: DateTime.now()
+                                    .add(const Duration(days: 365)),
+                              );
+                              if (date != null) {
+                                setState(() {
+                                  _checkOutDate = date;
+                                });
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(
+                                    AppBorderRadius.medium),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.calendar_today,
+                                      color: Colors.grey),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _checkOutDate != null
+                                          ? '${_checkOutDate!.day}/${_checkOutDate!.month}/${_checkOutDate!.year}'
+                                          : 'Check-out Date',
+                                      style: TextStyle(
+                                        color: _checkOutDate != null
+                                            ? Colors.black
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
 
                     // Filter actions
@@ -405,6 +489,39 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
             ),
           ),
+
+          // Map section
+          if (_isMapVisible)
+            Container(
+              height: 300,
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+                child: LocationPickerMap(
+                  initialLatitude: 37.7749, // Default to San Francisco
+                  initialLongitude: -122.4194,
+                  showSearchBar: true,
+                  onLocationSelected: (latitude, longitude, address, city) {
+                    // Update the city field with selected city
+                    setState(() {
+                      _cityController.text = city;
+                      _isMapVisible = false; // Hide map after selection
+                    });
+                    // Show confirmation
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('City selected: $city'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
 
           // Results
           Expanded(

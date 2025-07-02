@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/property2.dart';
+import '../../screens/property/property_reviews_screen.dart';
 import '../../utils/constants.dart';
 
 class PropertyReviewsSection extends StatelessWidget {
@@ -29,7 +30,7 @@ class PropertyReviewsSection extends StatelessWidget {
                 radius: 20,
                 backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                 child: Text(
-                  review.name?.isNotEmpty == true 
+                  review.name?.isNotEmpty == true
                       ? review.name!.substring(0, 1).toUpperCase()
                       : 'U',
                   style: TextStyle(
@@ -77,9 +78,9 @@ class PropertyReviewsSection extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Property review
           if (review.propertyReview?.isNotEmpty == true) ...[
             Text(
@@ -91,7 +92,7 @@ class PropertyReviewsSection extends StatelessWidget {
             ),
             const SizedBox(height: 8),
           ],
-          
+
           // Additional ratings if available
           if (review.userRating != null || review.ownerRating != null)
             Wrap(
@@ -146,50 +147,14 @@ class PropertyReviewsSection extends StatelessWidget {
     );
   }
 
-  void _showAllReviewsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            height: MediaQuery.of(context).size.height * 0.8,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'All Reviews (${property.reviewCount})',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: property.reviews.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildReviewCard(property.reviews[index]),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+  void _navigateToAllReviews(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PropertyReviewsScreen(
+          propertyId: property.propertyId,
+          propertyTitle: property.title,
+        ),
+      ),
     );
   }
 
@@ -230,7 +195,7 @@ class PropertyReviewsSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        
+
         if (property.reviews.isNotEmpty) ...[
           ...property.reviews.take(3).map((review) {
             return _buildReviewCard(review);
@@ -239,7 +204,7 @@ class PropertyReviewsSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: TextButton(
-                onPressed: () => _showAllReviewsDialog(context),
+                onPressed: () => _navigateToAllReviews(context),
                 child: Text(
                   'Show all ${property.reviewCount} reviews',
                   style: TextStyle(

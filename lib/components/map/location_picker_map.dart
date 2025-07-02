@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../utils/constants.dart';
 
 class LocationPickerMap extends StatefulWidget {
@@ -33,6 +34,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   String? _searchError;
   List<Placemark>? _searchResults;
   bool _isMapLoaded = false;
+  bool _isGettingLocation = false;
 
   @override
   void initState() {
@@ -57,7 +59,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     super.dispose();
   }
 
-  // Get address from latitude and longitude
+  // Get address from latitude and longitude (internal use only)
   Future<void> _getAddressFromLatLng(LatLng position) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
@@ -75,7 +77,36 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
           _selectedCity = city;
         });
 
-        // Notify parent widget about the selected location
+        // Don't automatically notify parent - only update internal state
+      }
+    } catch (e) {
+      debugPrint('Error getting address: $e');
+      setState(() {
+        _selectedAddress = 'Address not found';
+        _selectedCity = '';
+      });
+    }
+  }
+
+  // Get address and notify parent (for user selections)
+  Future<void> _getAddressAndNotify(LatLng position) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        final address = _formatAddress(place);
+        final city = place.locality ?? '';
+
+        setState(() {
+          _selectedAddress = address;
+          _selectedCity = city;
+        });
+
+        // Notify parent widget about the user's selection
         widget.onLocationSelected(
           position.latitude,
           position.longitude,
@@ -138,10 +169,25 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
           location.longitude,
         );
 
-        setState(() {
-          _searchResults = placemarks;
-          _isSearching = false;
-        });
+        if (placemarks.isNotEmpty) {
+          Placemark place = placemarks.first;
+          final address = _formatAddress(place);
+          final city = place.locality ?? '';
+
+          setState(() {
+            _selectedAddress = address;
+            _selectedCity = city;
+            _searchResults = placemarks;
+            _isSearching = false;
+          });
+
+          // Don't automatically select - let user choose from search results
+        } else {
+          setState(() {
+            _searchResults = null;
+            _isSearching = false;
+          });
+        }
       } else {
         setState(() {
           _searchError = 'No results found';
@@ -177,6 +223,69 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     );
   }
 
+  // Get current location
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isGettingLocation = true;
+    });
+
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception(
+            'Location permissions are permanently denied, we cannot request permissions.');
+      }
+
+      // Get current position
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      LatLng currentLocation = LatLng(position.latitude, position.longitude);
+
+      // Move map to current location
+      _mapController.move(currentLocation, 15.0);
+
+      // Update selected location
+      setState(() {
+        _selectedLocation = currentLocation;
+      });
+
+      // Get address for current location and notify parent
+      await _getAddressAndNotify(currentLocation);
+    } catch (e) {
+      debugPrint('Error getting current location: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error getting current location: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGettingLocation = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -189,37 +298,59 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search for a location',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _isSearching
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {
-                                _searchResults = null;
-                                _searchError = null;
-                              });
-                            },
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search for a location',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: _isSearching
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _searchResults = null;
+                                      _searchError = null;
+                                    });
+                                  },
+                                ),
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppBorderRadius.medium),
                           ),
-                    border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppBorderRadius.medium),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        onSubmitted: _searchLocation,
+                        textInputAction: TextInputAction.search,
+                      ),
                     ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  onSubmitted: _searchLocation,
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: _isSearching
+                          ? null
+                          : () => _searchLocation(_searchController.text),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: const Text('Search'),
+                    ),
+                  ],
                 ),
 
                 // Search results
@@ -271,7 +402,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
 
         // Map
         Container(
-          height: 300,
+          height: 200, // Reduced height to fit better
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade300),
             borderRadius: BorderRadius.circular(AppBorderRadius.medium),
@@ -289,7 +420,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                       setState(() {
                         _selectedLocation = point;
                       });
-                      _getAddressFromLatLng(point);
+                      _getAddressAndNotify(point);
                     },
                     onMapReady: () {
                       setState(() {
@@ -356,34 +487,32 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                         },
                         child: const Icon(Icons.remove),
                       ),
+                      const SizedBox(height: 8),
+                      FloatingActionButton.small(
+                        heroTag: 'current_location',
+                        onPressed:
+                            _isGettingLocation ? null : _getCurrentLocation,
+                        backgroundColor: _isGettingLocation
+                            ? Colors.grey
+                            : AppColors.primary,
+                        child: _isGettingLocation
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              )
+                            : const Icon(Icons.my_location,
+                                color: Colors.white),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-          ),
-        ),
-
-        // Selected location info
-        Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Selected Location:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text('Address: $_selectedAddress'),
-              Text('City: $_selectedCity'),
-              Text(
-                'Coordinates: ${_selectedLocation.latitude.toStringAsFixed(6)}, ${_selectedLocation.longitude.toStringAsFixed(6)}',
-              ),
-            ],
           ),
         ),
       ],
