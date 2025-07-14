@@ -15,6 +15,9 @@ import 'screens/property/property_detail_screen.dart';
 import 'screens/property/upload_property_screen.dart';
 import 'screens/property/my_properties_screen.dart';
 import 'screens/property/user_property_detail_screen.dart';
+import 'screens/property/edit_property_screen.dart';
+import 'screens/property/property_image_management_screen.dart';
+import 'screens/property/property_status_management_screen.dart';
 import 'screens/booking/user_bookings_screen.dart';
 import 'screens/booking/host_bookings_screen.dart';
 import 'screens/booking/booking_details_screen.dart';
@@ -113,6 +116,39 @@ class MyApp extends ConsumerWidget {
           );
         }
 
+        // Handle edit property route
+        if (settings.name == AppRoutes.editProperty) {
+          final property = settings.arguments;
+          if (property != null) {
+            return MaterialPageRoute(
+              builder: (context) =>
+                  EditPropertyScreen(property: property as dynamic),
+            );
+          }
+        }
+
+        // Handle manage property images route
+        if (settings.name == AppRoutes.managePropertyImages) {
+          final property = settings.arguments;
+          if (property != null) {
+            return MaterialPageRoute(
+              builder: (context) =>
+                  PropertyImageManagementScreen(property: property as dynamic),
+            );
+          }
+        }
+
+        // Handle property status management route
+        if (settings.name == AppRoutes.propertyStatusManagement) {
+          final property = settings.arguments;
+          if (property != null) {
+            return MaterialPageRoute(
+              builder: (context) =>
+                  PropertyStatusManagementScreen(property: property as dynamic),
+            );
+          }
+        }
+
         // Check if the route is defined in our routes map
         if (settings.name != null) {
           // Define which routes are implemented and which are coming soon
@@ -131,6 +167,9 @@ class MyApp extends ConsumerWidget {
             AppRoutes.requestPendingManagement,
             AppRoutes.hostBookingConfirmation,
             AppRoutes.personalInfo,
+            AppRoutes.editProperty,
+            AppRoutes.managePropertyImages,
+            AppRoutes.propertyStatusManagement,
           };
 
           // If the route is in AppRoutes but not in implementedRoutes, show Coming Soon

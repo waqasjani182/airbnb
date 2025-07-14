@@ -4,7 +4,7 @@ import '../../providers/property_provider2.dart';
 import '../../components/property/property_image_gallery.dart';
 import '../../components/property/user_property_info_section.dart';
 import '../../components/property/user_property_management_section.dart';
-import '../../components/property/user_property_analytics_section.dart';
+// import '../../components/property/user_property_analytics_section.dart';
 import '../../components/property/property_features_section.dart';
 import '../../components/property/property_reviews_section.dart';
 import '../../utils/constants.dart';
@@ -122,9 +122,9 @@ class _UserPropertyDetailScreenState
                   const Divider(height: 32),
 
                   // Property Management Section
-                  // UserPropertyManagementSection(property: property),
+                  UserPropertyManagementSection(property: property),
 
-                  // const Divider(height: 32),
+                  const Divider(height: 32),
 
                   // Property Analytics Section
                   // UserPropertyAnalyticsSection(property: property),

@@ -132,261 +132,50 @@ class UserPropertyManagementSection extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.medium),
 
-        // Quick Actions Row
+        // Quick Actions - First Row
         Row(
           children: [
-            _buildQuickAction(
-              label: 'Edit Details',
-              icon: Icons.edit,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Edit property feature coming soon!')),
-                );
-              },
+            Expanded(
+              child: _buildQuickAction(
+                label: 'Edit Details',
+                icon: Icons.edit,
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    AppRoutes.editProperty,
+                    arguments: property,
+                  );
+                },
+              ),
             ),
             const SizedBox(width: AppSpacing.small),
-            _buildQuickAction(
-              label: 'Manage Photos',
-              icon: Icons.photo_library,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Photo management feature coming soon!')),
-                );
-              },
+            Expanded(
+              child: _buildQuickAction(
+                label: 'Manage Photos',
+                icon: Icons.photo_library,
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    AppRoutes.managePropertyImages,
+                    arguments: property,
+                  );
+                },
+              ),
             ),
             const SizedBox(width: AppSpacing.small),
-            _buildQuickAction(
-              label: 'Pricing',
-              icon: Icons.attach_money,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Pricing management feature coming soon!')),
-                );
-              },
-            ),
-            const SizedBox(width: AppSpacing.small),
-            _buildQuickAction(
-              label: 'Availability',
-              icon: Icons.calendar_today,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content:
-                          Text('Availability management feature coming soon!')),
-                );
-              },
+            Expanded(
+              child: _buildQuickAction(
+                label: 'Status Control',
+                icon: Icons.settings,
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    AppRoutes.propertyStatusManagement,
+                    arguments: property,
+                  );
+                },
+              ),
             ),
           ],
-        ),
-
-        const SizedBox(height: AppSpacing.large),
-
-        // Management Actions
-        _buildActionCard(
-          title: 'View Bookings',
-          subtitle: 'Manage current and upcoming reservations',
-          icon: Icons.book_online,
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Booking management feature coming soon!')),
-            );
-          },
-        ),
-
-        const SizedBox(height: AppSpacing.small),
-
-        _buildActionCard(
-          title: 'Guest Messages',
-          subtitle: 'Communicate with your guests',
-          icon: Icons.message,
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Messaging feature coming soon!')),
-            );
-          },
-        ),
-
-        const SizedBox(height: AppSpacing.small),
-
-        _buildActionCard(
-          title: 'Property Settings',
-          subtitle: 'Configure house rules, check-in instructions',
-          icon: Icons.settings,
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Property settings feature coming soon!')),
-            );
-          },
-        ),
-
-        const SizedBox(height: AppSpacing.small),
-
-        _buildActionCard(
-          title: 'Performance Insights',
-          subtitle: 'View detailed analytics and reports',
-          icon: Icons.analytics,
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Analytics feature coming soon!')),
-            );
-          },
-        ),
-
-        const SizedBox(height: AppSpacing.large),
-
-        // Danger Zone
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.medium),
-          decoration: BoxDecoration(
-            color: AppColors.error.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(AppBorderRadius.large),
-            border: Border.all(
-              color: AppColors.error.withValues(alpha: 0.2),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.warning,
-                    color: AppColors.error,
-                    size: 20,
-                  ),
-                  const SizedBox(width: AppSpacing.small),
-                  Text(
-                    'Danger Zone',
-                    style: AppTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.error,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.small),
-              Text(
-                'These actions cannot be undone. Please proceed with caution.',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.error,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.medium),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        _showDeactivateDialog(context);
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                        side: BorderSide(color: AppColors.error),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.large,
-                          vertical: AppSpacing.medium,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppBorderRadius.medium),
-                        ),
-                      ),
-                      child: const Text('Deactivate Property'),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.small),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _showDeleteDialog(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.large,
-                          vertical: AppSpacing.medium,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppBorderRadius.medium),
-                        ),
-                      ),
-                      child: const Text('Delete Property'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ),
       ],
-    );
-  }
-
-  void _showDeactivateDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Deactivate Property'),
-          content: const Text(
-            'Are you sure you want to deactivate this property? It will no longer be visible to guests.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Deactivate feature coming soon!')),
-                );
-              },
-              style: TextButton.styleFrom(foregroundColor: AppColors.error),
-              child: const Text('Deactivate'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showDeleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Property'),
-          content: const Text(
-            'Are you sure you want to permanently delete this property? This action cannot be undone.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Delete feature coming soon!')),
-                );
-              },
-              style: TextButton.styleFrom(foregroundColor: AppColors.error),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
