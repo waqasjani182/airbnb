@@ -115,6 +115,9 @@ class AppRoutes {
   static const String editProperty = '/edit_property';
   static const String managePropertyImages = '/manage_property_images';
   static const String propertyStatusManagement = '/property_status_management';
+  static const String cityProperties = '/city_properties';
+  static const String bookingsAnalytics = '/bookings_analytics';
+  static const String newEndpointsDemo = '/new_endpoints_demo';
 
   // List of all routes for easy access
   static final List<String> values = [
@@ -146,6 +149,9 @@ class AppRoutes {
     editProperty,
     managePropertyImages,
     propertyStatusManagement,
+    cityProperties,
+    bookingsAnalytics,
+    newEndpointsDemo,
   ];
 }
 

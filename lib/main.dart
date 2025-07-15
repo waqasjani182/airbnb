@@ -25,6 +25,9 @@ import 'screens/booking/request_pending_screen.dart';
 import 'screens/booking/host_booking_confirmation_screen.dart';
 import 'screens/common/coming_soon_screen.dart';
 import 'screens/common/not_found_screen.dart';
+import 'screens/common/new_endpoints_demo_screen.dart';
+import 'screens/search/city_properties_screen.dart';
+import 'screens/booking/bookings_with_ratings_screen.dart';
 import 'screens/profile/user_reviews_screen.dart';
 import 'services/navigation_service.dart';
 import 'utils/constants.dart';
@@ -85,6 +88,10 @@ class MyApp extends ConsumerWidget {
             const HostBookingConfirmationScreen(),
         AppRoutes.personalInfo: (context) => const PersonalInfoScreen(),
         AppRoutes.userReviews: (context) => const UserReviewsScreen(),
+        AppRoutes.newEndpointsDemo: (context) => const NewEndpointsDemoScreen(),
+        AppRoutes.cityProperties: (context) => const CityPropertiesScreen(),
+        AppRoutes.bookingsAnalytics: (context) =>
+            const BookingsWithRatingsScreen(),
       },
       onGenerateRoute: (settings) {
         // Handle dynamic routes here
@@ -170,6 +177,9 @@ class MyApp extends ConsumerWidget {
             AppRoutes.editProperty,
             AppRoutes.managePropertyImages,
             AppRoutes.propertyStatusManagement,
+            AppRoutes.newEndpointsDemo,
+            AppRoutes.cityProperties,
+            AppRoutes.bookingsAnalytics,
           };
 
           // If the route is in AppRoutes but not in implementedRoutes, show Coming Soon

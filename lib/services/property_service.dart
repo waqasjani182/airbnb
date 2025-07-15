@@ -10,6 +10,7 @@ import '../models/property.dart';
 import '../models/property_image.dart';
 import '../models/property_amenity.dart';
 import '../models/property_review.dart';
+import '../models/city_properties_response.dart';
 import '../utils/constants.dart';
 import 'api_client.dart';
 
@@ -779,6 +780,30 @@ class PropertyService {
       }
     } else {
       throw Exception(response.error ?? 'Failed to search properties');
+    }
+  }
+
+  /// Get properties by city with ratings
+  ///
+  /// Retrieves all active properties in a specified city along with their
+  /// comprehensive rating information, review statistics, and related data.
+  ///
+  /// @param cityName The name of the city to search for properties (case-insensitive)
+  /// @param token Optional authentication token
+  Future<CityPropertiesResponse> getPropertiesByCity(
+    String cityName, {
+    String? token,
+  }) async {
+    final response = await _apiClient.get<Map<String, dynamic>>(
+      '/api/properties/city/$cityName',
+      requiresAuth: token != null,
+    );
+
+    if (response.success && response.data != null) {
+      return CityPropertiesResponse.fromJson(response.data!);
+    } else {
+      throw Exception(
+          response.error ?? 'Failed to load properties for city: $cityName');
     }
   }
 }

@@ -191,6 +191,42 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+
+                // Quick access to new search features
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                              context, AppRoutes.cityProperties);
+                        },
+                        icon: const Icon(Icons.location_city, size: 16),
+                        label: const Text('City Search'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: BorderSide(color: AppColors.primary),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                              context, AppRoutes.bookingsAnalytics);
+                        },
+                        icon: const Icon(Icons.analytics, size: 16),
+                        label: const Text('Analytics'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: BorderSide(color: AppColors.primary),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

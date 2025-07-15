@@ -1,5 +1,6 @@
 import '../models/booking.dart';
 import '../models/availability.dart';
+import '../models/bookings_with_ratings_response.dart';
 import '../utils/constants.dart';
 import 'api_client.dart';
 
@@ -173,6 +174,38 @@ class BookingService {
       return PropertyAvailability.fromJson(response.data!);
     } else {
       throw Exception(response.error ?? 'Failed to check availability');
+    }
+  }
+
+  /// Get bookings with ratings by date range
+  ///
+  /// Retrieves all bookings within a specified date range along with their
+  /// rating information, guest/host details, and comprehensive statistics.
+  ///
+  /// @param fromDate Start date in YYYY-MM-DD format
+  /// @param toDate End date in YYYY-MM-DD format
+  /// @param token Optional authentication token
+  Future<BookingsWithRatingsResponse> getBookingsWithRatingsByDateRange({
+    required String fromDate,
+    required String toDate,
+    String? token,
+  }) async {
+    final queryParams = {
+      'from_date': fromDate,
+      'to_date': toDate,
+    };
+
+    final response = await _apiClient.get<Map<String, dynamic>>(
+      '/api/bookings/date-range',
+      requiresAuth: token != null,
+      queryParams: queryParams,
+    );
+
+    if (response.success && response.data != null) {
+      return BookingsWithRatingsResponse.fromJson(response.data!);
+    } else {
+      throw Exception(response.error ??
+          'Failed to load bookings for date range: $fromDate to $toDate');
     }
   }
 }

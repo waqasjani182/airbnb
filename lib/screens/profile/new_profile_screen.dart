@@ -159,6 +159,34 @@ class NewProfileScreen extends ConsumerWidget {
 
             const Divider(),
 
+            // Analytics & Search section
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Text(
+                'Analytics & Search',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            _buildSettingsItem(
+              context,
+              Icons.location_city,
+              'City Properties Search',
+              () => Navigator.pushNamed(context, AppRoutes.cityProperties),
+            ),
+
+            _buildSettingsItem(
+              context,
+              Icons.analytics,
+              'Bookings Analytics',
+              () => Navigator.pushNamed(context, AppRoutes.bookingsAnalytics),
+            ),
+
+            const Divider(),
+
             // Logout
             Padding(
               padding:
